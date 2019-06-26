@@ -60,8 +60,8 @@ public class Terrain {
 	 * INSTANCE FIELDS
 	 */
 	private Planet planet;
-	private float[] cElevation;
-	private float[] tElevation;
+	private float[] elevationCorners;
+	private float[] elevationTiles;
 
 	/*
 	 * CONSTRUCTORS
@@ -90,11 +90,11 @@ public class Terrain {
 	}
 
 	public float getElevationOfCorner(int id) {
-		return cElevation[id];
+		return elevationCorners[id];
 	}
 
 	public float getElevationOfTile(int id) {
-		return tElevation[id];
+		return elevationTiles[id];
 	}
 
 	/*
@@ -112,8 +112,8 @@ public class Terrain {
 	 * PRIVATE METHODS
 	 */
 	private void setupElevation() {
-		this.cElevation = new float[grid.corners.length];
-		this.tElevation = new float[grid.tiles.length];
+		this.elevationCorners = new float[grid.corners.length];
+		this.elevationTiles = new float[grid.tiles.length];
 		/*
 		 * First step appears to create 1,000 Vec3[3] arrays with points uniformly
 		 * distributed over a unit sphere.
@@ -123,37 +123,37 @@ public class Terrain {
 		List<float[][]> d = Dice.elevationVectors(Parameters.iterations);
 
 		for (Tile el : grid.tiles)
-			tElevation[el.id] = elevationHelper(el.v, d);
+			elevationTiles[el.id] = elevationHelper(el.v, d);
 
 		for (Corner el : grid.corners)
-			cElevation[el.id] = elevationHelper(el.v, d);
+			elevationCorners[el.id] = elevationHelper(el.v, d);
 
 		/*
 		 * SCALE ELEVATION - was separate method; just moved it here
 		 */
-		float lowest = tElevation[0], highest = lowest;
+		float lowest = elevationTiles[0], highest = lowest;
 
 		for (Tile el : grid.tiles) {
-			lowest = tElevation[el.id] < lowest ? tElevation[el.id] : highest;
-			highest = tElevation[el.id] > highest ? tElevation[el.id] : highest;
+			lowest = elevationTiles[el.id] < lowest ? elevationTiles[el.id] : highest;
+			highest = elevationTiles[el.id] > highest ? elevationTiles[el.id] : highest;
 		}
 
 		for (Corner el : grid.corners) {
-			lowest = cElevation[el.id] < lowest ? cElevation[el.id] : lowest;
-			highest = cElevation[el.id] > highest ? cElevation[el.id] : highest;
+			lowest = elevationCorners[el.id] < lowest ? elevationCorners[el.id] : lowest;
+			highest = elevationCorners[el.id] > highest ? elevationCorners[el.id] : highest;
 		}
 
 		highest = Math.max(1, highest - lowest);
 		float scalar = SCALE / highest;
 
 		for (Tile el : grid.tiles) {
-			tElevation[el.id] -= lowest;
-			tElevation[el.id] *= scalar;
+			elevationTiles[el.id] -= lowest;
+			elevationTiles[el.id] *= scalar;
 		}
 
 		for (Corner el : grid.corners) {
-			cElevation[el.id] -= lowest;
-			cElevation[el.id] *= scalar;
+			elevationCorners[el.id] -= lowest;
+			elevationCorners[el.id] *= scalar;
 		}
 	}
 
@@ -176,7 +176,7 @@ public class Terrain {
 	private void createSea() {
 		Tile start = lowestTile();
 
-		float seaLevel = tElevation[start.id];
+		float seaLevel = elevationTiles[start.id];
 		// float seaLevel = start.elevation;
 
 		int waterTileTarget = (int) (Parameters.water_ratio * grid.tiles.length);
@@ -216,14 +216,14 @@ public class Terrain {
 					}
 				}
 
-				return tElevation[tile.id];
+				return elevationTiles[tile.id];
 				// return tile.elevation;
 			};
 
 			while (waterTileSet.size() < waterTileTarget) {
 				seaLevel = (float) insertNextTile.get();
 
-				while (unvisited.size() > 0 && tElevation[unvisited.iterator().next().id] < seaLevel)
+				while (unvisited.size() > 0 && elevationTiles[unvisited.iterator().next().id] < seaLevel)
 					insertNextTile.get();
 
 				// while (unvisited.size() > 0 && unvisited.iterator().next().elevation <
@@ -232,14 +232,14 @@ public class Terrain {
 			}
 
 			if (waterTileSet.size() > 0)
-				seaLevel = (seaLevel + tElevation[waterTileSet.iterator().next().id]) / 2;
+				seaLevel = (seaLevel + elevationTiles[waterTileSet.iterator().next().id]) / 2;
 
 			// if (waterTileSet.size() > 0)
 			// seaLevel = (seaLevel + waterTileSet.iterator().next().elevation) / 2;
 
 			for (Tile el : waterTileSet) {
 				el.water.surface = (float) seaLevel;
-				el.water.depth = (float) (seaLevel - tElevation[el.id]);
+				el.water.depth = (float) (seaLevel - elevationTiles[el.id]);
 				// el.water.depth = (float) (seaLevel - el.elevation);
 			}
 		}
@@ -251,7 +251,7 @@ public class Terrain {
 		Tile lowest = grid.tiles[0];
 		for (int i = 0; i < grid.tiles.length; ++i) {
 
-			if (tElevation[grid.tiles[i].id] < tElevation[lowest.id])
+			if (elevationTiles[grid.tiles[i].id] < elevationTiles[lowest.id])
 				lowest = grid.tiles[i];
 
 			// if (grid.tiles[i].elevation < lowest.elevation)

@@ -10,8 +10,10 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.math.Quaternion;
 
+import api.ViewType;
 import controller.Matrix3;
 import controller.PlanetUtil;
+import controller.PlanetViewController;
 import model.Corner;
 import model.Planet;
 import model.Tile;
@@ -123,14 +125,14 @@ public class GlobeView extends PlanetView implements GLEventListener {
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		final GL2 gl = drawable.getGL().getGL2();
-//		System.out.println(GLContext.getCurrent().getGLVersion());
-		
+		// System.out.println(GLContext.getCurrent().getGLVersion());
+
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
 		setMatrix(gl);
 
 		// gl.glTranslatef(0f, 0f, -15.0f);
-//		gl.glRotatef(rquad, 1.0f, 1.0f, 1.0f);
+		// gl.glRotatef(rquad, 1.0f, 1.0f, 1.0f);
 		gl.glRotatef(rquad, 0, 1.0f, 0);
 
 		// gl.glFrontFace(GL.GL_CCW);
@@ -158,17 +160,28 @@ public class GlobeView extends PlanetView implements GLEventListener {
 
 		for (int i = 0; i < length; ++i) {
 			// TOPOGRAPHY
-			drawTile.accept(gTiles[i], PlanetColor.topoColors[i]);
+			if (PlanetViewController.getViewType().equals(ViewType.TOPOGRAPHY))
+				drawTile.accept(gTiles[i], PlanetColor.topoColors[i]);
+
 			// VEGETATION
-//			 drawTile.accept(gTiles[i], PlanetColor.vegeColors[i]);
+			if (PlanetViewController.getViewType().equals(ViewType.VEGETATION))
+				drawTile.accept(gTiles[i], PlanetColor.vegeColors[i]);
+
 			// TEMPERATURE
-//			 drawTile.accept(gTiles[i], PlanetColor.tempColors[i]);
+			if (PlanetViewController.getViewType().equals(ViewType.TEMPERATURE))
+				drawTile.accept(gTiles[i], PlanetColor.tempColors[i]);
+
 			// ARIDITY
-//			 drawTile.accept(gTiles[i], PlanetColor.aridColors[i]);
+			if (PlanetViewController.getViewType().equals(ViewType.ARIDITY))
+				drawTile.accept(gTiles[i], PlanetColor.aridColors[i]);
+
 			// HUMIDITY
-//			 drawTile.accept(gTiles[i], PlanetColor.humidColors[i]);
+			if (PlanetViewController.getViewType().equals(ViewType.HUMIDITY))
+				drawTile.accept(gTiles[i], PlanetColor.humidColors[i]);
+
 			// PRECIPITATION
-//			 drawTile.accept(gTiles[i], PlanetColor.rainColors[i]);
+			if (PlanetViewController.getViewType().equals(ViewType.PRECIPITATION))
+				drawTile.accept(gTiles[i], PlanetColor.rainColors[i]);
 		}
 
 		gl.glFlush();
