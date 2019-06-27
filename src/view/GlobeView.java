@@ -14,6 +14,8 @@ import api.ViewType;
 import controller.Matrix3;
 import controller.PlanetUtil;
 import controller.PlanetViewController;
+import graphics.JO;
+import graphics.PlanetColor;
 import model.Corner;
 import model.Planet;
 import model.Tile;

@@ -38,8 +38,9 @@ public class Grid {
 		int edgeSize = edgeCount(size);
 
 		tiles = new Tile[tileSize];
-		for (int i = 0; i < tileSize; ++i)
+		for (int i = 0; i < tileSize; ++i) {
 			tiles[i] = new Tile(i, i < 12 ? 5 : 6);
+		}
 
 		corners = new Corner[cornerSize];
 		for (int i = 0; i < cornerSize; ++i)
@@ -54,7 +55,7 @@ public class Grid {
 	/*
 	 * INSTANCE METHODS
 	 */
-	public void addCorner(int index, int t1, int t2, int t3) {
+	private void addCorner(int index, int t1, int t2, int t3) {
 		corners[index].addCorner(new Tile[] { tiles[t1], tiles[t2], tiles[t3] });
 	}
 
@@ -141,6 +142,7 @@ public class Grid {
 		// OLD TILES
 		for (int i = 0; i < prev_tile_count; i++) {
 			grid.tiles[i].v = prev.tiles[i].v;
+
 			for (int k = 0; k < grid.tiles[i].edgeCount; k++) {
 				grid.tiles[i].tiles[k] = grid.tiles[prev.tiles[i].corners[k].id + prev_tile_count];
 			}
@@ -149,6 +151,7 @@ public class Grid {
 		// OLD CORNERS BECOMES TILES
 		for (int i = 0; i < prev_corner_count; i++) {
 			grid.tiles[i + prev_tile_count].v = prev.corners[i].v;
+
 			for (int k = 0; k < 3; k++) {
 				grid.tiles[i + prev_tile_count].tiles[2 * k] = grid.tiles[prev.corners[i].corners[k].id
 						+ prev_tile_count];
@@ -184,6 +187,7 @@ public class Grid {
 			}
 		}
 
+		// System.out.println("End subdivide");
 		return grid;
 	}
 
@@ -197,11 +201,13 @@ public class Grid {
 				el.tiles[i] = grid.tiles[ICOSAHEDRON_IDS[el.id][i]];
 		}
 
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 5; i++) {
 			grid.addCorner(i, 0, ICOSAHEDRON_IDS[0][(i + 4) % 5], ICOSAHEDRON_IDS[0][i]);
+		}
 
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 5; i++) {
 			grid.addCorner(i + 5, 3, ICOSAHEDRON_IDS[3][(i + 4) % 5], ICOSAHEDRON_IDS[3][i]);
+		}
 
 		grid.addCorner(10, 10, 1, 8);
 		grid.addCorner(11, 1, 10, 6);

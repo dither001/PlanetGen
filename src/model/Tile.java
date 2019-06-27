@@ -40,12 +40,8 @@ public class Tile {
 
 		// terrain fields
 		this.latitude = 0;
+		this.region = -1;
 		
-		if (id < 12)
-			this.region = id;
-		else
-			this.region = -1;
-
 		// elevation = 0;
 		// type = LandType.LAND;
 		water = new Water();

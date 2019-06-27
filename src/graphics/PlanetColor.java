@@ -1,4 +1,4 @@
-package view;
+package graphics;
 
 import model.Climate;
 import model.Planet;
@@ -20,6 +20,22 @@ public abstract class PlanetColor {
 	/*
 	 * COLOR METHODS
 	 */
+	public static void setupColors(Planet p) {
+		Season s = p.getClimate().getSeason();
+
+		//
+		colorTopography(p);
+		colorVegetation(s, p);
+		colorTemperature(s, p);
+		colorAridity(s, p);
+		colorHumidity(s, p);
+		colorPrecipitation(s, p);
+
+		//
+		colorRegions(p);
+		colorLatitude(p);
+	}
+
 	private static float[] color() {
 		return new float[] { 0, 0, 0 };
 	}
@@ -39,13 +55,20 @@ public abstract class PlanetColor {
 	/*
 	 * TOPOGRAPHY
 	 */
-	public static void colorTopography(Planet p) {
-		float[] deepWater = new float[] { 0.0f, 0.0f, 0.25f };
-		float[] water = new float[] { 0.0f, 0.12f, 0.5f };
-		float[] shallow = new float[] { 0.0f, 0.4f, 0.6f };
+	private static void colorTopography(Planet p) {
+		float[] deepWater = Color.NAVY_BLUE.rgb();
+		float[] water = Color.BLUE.rgb();
+		float[] shallow = Color.LIGHT_BLUE.rgb();
 
-		float[][] land = new float[][] { { 0.0f, 0.4f, 0.0f }, { 0.0f, 0.7f, 0.0f }, { 1.0f, 1.0f, 0.0f },
-				{ 1.0f, 0.5f, 0.0f }, { 0.7f, 0.0f, 0.0f }, { 0.1f, 0.1f, 0.1f } };
+		// float[][] land = new float[][] { //
+		// Color.DARK_GREEN.rgb(), Color.LIGHT_GREEN.rgb(), Color.BRONZE.rgb(), //
+		// Color.GREEN.rgb(), Color.RED.rgb(), Color.DARK_GRAY.rgb() //
+		// };
+
+		float[][] land = new float[][] { //
+				{ 0.0f, 0.4f, 0.0f }, { 0.0f, 0.7f, 0.0f }, { 1.0f, 1.0f, 0.0f }, //
+				{ 1.0f, 0.5f, 0.0f }, { 0.7f, 0.0f, 0.0f }, { 0.1f, 0.1f, 0.1f } //
+		};
 		float[] limit = { -500, 0, 500, 1000, 1500, 2000, 2500 };
 
 		//
@@ -87,7 +110,7 @@ public abstract class PlanetColor {
 	/*
 	 * VEGETATION
 	 */
-	public static void colorVegetation(Season s, Planet p) {
+	private static void colorVegetation(Season s, Planet p) {
 		float[] deepWater = new float[] { 0.0f, 0.0f, 0.25f };
 		float[] shallow = new float[] { 0.0f, 0.4f, 0.6f };
 		float[] snow = new float[] { 1.0f, 1.0f, 1.0f };
@@ -125,7 +148,7 @@ public abstract class PlanetColor {
 	/*
 	 * TEMPERATURE
 	 */
-	public static void colorTemperature(Season s, Planet p) {
+	private static void colorTemperature(Season s, Planet p) {
 		float[][] colors = new float[][] { //
 				{ 1.0f, 1.0f, 1.0f }, //
 				{ 0.7f, 0f, 0.5f }, //
@@ -166,7 +189,7 @@ public abstract class PlanetColor {
 	/*
 	 * ARIDITY
 	 */
-	public static void colorAridity(Season s, Planet p) {
+	private static void colorAridity(Season s, Planet p) {
 		float[] water = new float[] { 1, 1, 1 };
 		float[][] colors = new float[][] { { 1, 0, 0 }, { 1, 1, 0 }, { 0, 1, 0 }, { 0, 0.5f, 0 } };
 		float[] limit = new float[] { 2, 1, 0.5f, 0 };
@@ -198,7 +221,7 @@ public abstract class PlanetColor {
 	/*
 	 * HUMIDITY
 	 */
-	public static void colorHumidity(Season s, Planet p) {
+	private static void colorHumidity(Season s, Planet p) {
 		float[] water = new float[] { 1, 1, 1 };
 		float[] dryland = new float[] { 1, 1, 0.5f };
 		float[] midland = new float[] { 1, 1, 0 };
@@ -230,7 +253,7 @@ public abstract class PlanetColor {
 	/*
 	 * PRECIPITATION
 	 */
-	public static void colorPrecipitation(Season s, Planet p) {
+	private static void colorPrecipitation(Season s, Planet p) {
 		float[] water = new float[] { 1, 1, 1 };
 		float[] dry = new float[] { 1, 1, 0.5f };
 		float[] medium = new float[] { 0, 1, 0 };
@@ -263,22 +286,43 @@ public abstract class PlanetColor {
 	}
 
 	/*
+	 * STAINED GLASS
+	 */
+	private static void stainedGlass(Planet p) {
+		float[][] regions = new float[][] { //
+				Color.BLOOD_RED.rgb(), Color.DARK_RED.rgb(), Color.RED.rgb(), Color.DARK_RED.rgb(), //
+				Color.RUSSET.rgb(), Color.OCHRE.rgb(), Color.BRONZE.rgb(), //
+				Color.FOREST_GREEN.rgb(), Color.DARK_GREEN.rgb(), Color.GREEN.rgb(), Color.LIGHT_GREEN.rgb(), //
+				Color.SEA_GREEN.rgb(), Color.MINT.rgb(), Color.JUNGLE.rgb(), //
+				Color.NAVY_BLUE.rgb(), Color.DARK_BLUE.rgb(), Color.BLUE.rgb(), Color.LIGHT_BLUE.rgb(), //
+				Color.PURPLE.rgb(), Color.ORCHID.rgb(), Color.MAGENTA.rgb() //
+		};
+
+		//
+		Tile[] gTiles = p.getGrid().tiles;
+		int length = gTiles.length;
+
+		float[][] stainedGlass = new float[length][];
+		for (int i = 0; i < length; ++i) {
+			if (i > 11)
+				stainedGlass[i] = regions[i % 20];
+			else
+				stainedGlass[i] = new float[] { 1, 1, 1 };
+		}
+
+	}
+
+	/*
 	 * REGION
 	 */
-	public static void colorRegions(Season s, Planet p) {
+	private static void colorRegions(Planet p) {
 		float[][] regions = new float[][] { //
-				{ 0.2f, 0.2f, 0.2f }, //
-				{ 0.5f, 0.2f, 0.2f }, //
-				{ 0.2f, 0.5f, 0.2f }, //
-				{ 0.2f, 0.2f, 0.5f }, //
-				{ 0.5f, 0.5f, 0.2f }, //
-				{ 0.2f, 0.5f, 0.5f }, //
-				{ 0.5f, 0.5f, 0.5f }, //
-				{ 0.8f, 0.2f, 0.2f }, //
-				{ 0.2f, 0.8f, 0.2f }, //
-				{ 0.2f, 0.2f, 0.8f }, //
-				{ 0.8f, 0.8f, 0.2f }, //
-				{ 0.2f, 0.8f, 0.8f } //
+				Color.BLOOD_RED.rgb(), Color.DARK_RED.rgb(), Color.RED.rgb(), Color.DARK_RED.rgb(), //
+				Color.RUSSET.rgb(), Color.OCHRE.rgb(), Color.BRONZE.rgb(), //
+				Color.FOREST_GREEN.rgb(), Color.DARK_GREEN.rgb(), Color.GREEN.rgb(), Color.LIGHT_GREEN.rgb(), //
+				Color.SEA_GREEN.rgb(), Color.MINT.rgb(), Color.JUNGLE.rgb(), //
+				Color.NAVY_BLUE.rgb(), Color.DARK_BLUE.rgb(), Color.BLUE.rgb(), Color.LIGHT_BLUE.rgb(), //
+				Color.PURPLE.rgb(), Color.ORCHID.rgb(), Color.MAGENTA.rgb() //
 		};
 
 		//
@@ -289,14 +333,8 @@ public abstract class PlanetColor {
 		for (int i = 0; i < length; ++i) {
 			Tile current = gTiles[i];
 
-			if (current.region != -1)
-				regionColors[i] = regions[current.region];
-			// if (i < 12)
-			// regionColors[i] = regions[i % 12];
-			// else if (i < 12 + 36)
-			// regionColors[i] = regions[0];
-			// else if (i < 12 + 36 + 108)
-			// regionColors[i] = regions[1];
+			if (i > 11)
+				regionColors[i] = regions[i % 20];
 			else
 				regionColors[i] = new float[] { 1, 1, 1 };
 		}
@@ -306,7 +344,7 @@ public abstract class PlanetColor {
 	/*
 	 * LATITUDE
 	 */
-	public static void colorLatitude(Planet p) {
+	private static void colorLatitude(Planet p) {
 		float[] purple = new float[] { 0.4f, 0.1f, 0.4f };
 		float[] yellow = new float[] { 0.4f, 0.4f, 0.1f };
 		float[] green = new float[] { 0.1f, 0.4f, 0.1f };

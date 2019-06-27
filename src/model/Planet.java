@@ -154,12 +154,13 @@ public class Planet {
 		return (float) (2.0 * angularVelocity(p) * Math.sin(latitude));
 	}
 
-	public static float latitude(Planet p, float[] vector3) {
-		/*
-		 * FIXME - subtracts (angle between planet's axis and vector3)
-		 */
-		return (float) (Math.PI / 2 - VectorUtil.angleVec3(p.defaultAxis(), vector3));
-	}
+	// public static float latitude(Planet p, float[] vector3) {
+	// /*
+	// * FIXME - subtracts (angle between planet's axis and vector3)
+	// */
+	// return (float) (Math.PI / 2 - VectorUtil.angleVec3(p.defaultAxis(),
+	// vector3));
+	// }
 
 	/*
 	 * Checks if x and y are 0; returns inverse-tangent of y, x

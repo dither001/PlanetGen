@@ -10,11 +10,11 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.FPSAnimator;
 
 import api.ViewType;
+import graphics.PlanetColor;
 import menu.ViewsMenu;
 import model.Planet;
 import view.GlobeView;
 import view.GlobePanel;
-import view.PlanetColor;
 
 public class PlanetViewController {
 
@@ -27,7 +27,7 @@ public class PlanetViewController {
 	static {
 		setViewType(ViewType.REGION);
 
-		GRID_SIZE = 2;
+		GRID_SIZE = 6;
 		PROFILE = GLProfile.get(GLProfile.GL2);
 		CAPABILITIES = new GLCapabilities(PROFILE);
 	}
@@ -86,17 +86,9 @@ public class PlanetViewController {
 		try {
 			p = Planet.build(GRID_SIZE);
 			//
-			PlanetColor.colorTopography(p);
-			PlanetColor.colorVegetation(p.getClimate().getSeason(), p);
-			PlanetColor.colorTemperature(p.getClimate().getSeason(), p);
-			PlanetColor.colorAridity(p.getClimate().getSeason(), p);
-			PlanetColor.colorHumidity(p.getClimate().getSeason(), p);
-			PlanetColor.colorPrecipitation(p.getClimate().getSeason(), p);
-			//
-			PlanetColor.colorRegions(p.getClimate().getSeason(), p);
-			PlanetColor.colorLatitude(p);
-
+			PlanetColor.setupColors(p);
 			view = new GlobeView(p, p.rotationToDefault());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
