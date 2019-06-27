@@ -14,6 +14,9 @@ public abstract class PlanetColor {
 	public static float[][] humidColors;
 	public static float[][] rainColors;
 
+	public static float[][] regionColors;
+	public static float[][] latColors;
+
 	/*
 	 * COLOR METHODS
 	 */
@@ -55,7 +58,8 @@ public abstract class PlanetColor {
 			double elevation = p.getElevationOfTile(i) - seaLevel;
 			double ratio = 0.0;
 
-			if (gTiles[i].isWater()) {
+			if (p.tileIsWater(i)) {
+				// if (gTiles[i].isWater()) {
 				// WATER
 				if (elevation < -1000) {
 					topoColors[i] = deepWater;
@@ -98,7 +102,8 @@ public abstract class PlanetColor {
 		for (int i = 0; i < length; ++i) {
 			double ratio = 0.0;
 
-			if (gTiles[i].isWater()) {
+			if (p.tileIsWater(i)) {
+				// if (gTiles[i].isWater()) {
 				// WATER
 				ratio = Math.min(1, gTiles[i].getWaterDepth() / 400);
 				vegeColors[i] = interpolateColor(shallow, deepWater, ratio);
@@ -173,7 +178,8 @@ public abstract class PlanetColor {
 		aridColors = new float[length][];
 		for (int i = 0; i < length; ++i) {
 
-			if (gTiles[i].isWater()) {
+			if (p.tileIsWater(i)) {
+				// if (gTiles[i].isWater()) {
 				aridColors[i] = water;
 			} else {
 				float aridity = s.aridity(i);
@@ -204,7 +210,8 @@ public abstract class PlanetColor {
 
 		humidColors = new float[length][];
 		for (int i = 0; i < length; ++i) {
-			if (gTiles[i].isWater()) {
+			if (p.tileIsWater(i)) {
+				// if (gTiles[i].isWater()) {
 				humidColors[i] = water;
 			} else {
 				double humidity = s.getHumidity(i) / Climate.saturationHumidity(s.getTemperature(i));
@@ -238,7 +245,8 @@ public abstract class PlanetColor {
 			double high = 7e-8;
 			double low = high / 10;
 
-			if (gTiles[i].isWater()) {
+			if (p.tileIsWater(i)) {
+				// if (gTiles[i].isWater()) {
 				rainColors[i] = water;
 			} else {
 				double ratio = 0.0;
@@ -254,4 +262,72 @@ public abstract class PlanetColor {
 		}
 	}
 
+	/*
+	 * REGION
+	 */
+	public static void colorRegions(Season s, Planet p) {
+		float[][] regions = new float[][] { //
+				{ 0.2f, 0.2f, 0.2f }, //
+				{ 0.5f, 0.2f, 0.2f }, //
+				{ 0.2f, 0.5f, 0.2f }, //
+				{ 0.2f, 0.2f, 0.5f }, //
+				{ 0.5f, 0.5f, 0.2f }, //
+				{ 0.2f, 0.5f, 0.5f }, //
+				{ 0.5f, 0.5f, 0.5f }, //
+				{ 0.8f, 0.2f, 0.2f }, //
+				{ 0.2f, 0.8f, 0.2f }, //
+				{ 0.2f, 0.2f, 0.8f }, //
+				{ 0.8f, 0.8f, 0.2f }, //
+				{ 0.2f, 0.8f, 0.8f } //
+		};
+
+		//
+		Tile[] gTiles = p.getGrid().tiles;
+		int length = gTiles.length;
+
+		regionColors = new float[length][];
+		for (int i = 0; i < length; ++i) {
+			Tile current = gTiles[i];
+
+			if (current.region != -1)
+				regionColors[i] = regions[current.region];
+			// if (i < 12)
+			// regionColors[i] = regions[i % 12];
+			// else if (i < 12 + 36)
+			// regionColors[i] = regions[0];
+			// else if (i < 12 + 36 + 108)
+			// regionColors[i] = regions[1];
+			else
+				regionColors[i] = new float[] { 1, 1, 1 };
+		}
+
+	}
+
+	/*
+	 * LATITUDE
+	 */
+	public static void colorLatitude(Planet p) {
+		float[] purple = new float[] { 0.4f, 0.1f, 0.4f };
+		float[] yellow = new float[] { 0.4f, 0.4f, 0.1f };
+		float[] green = new float[] { 0.1f, 0.4f, 0.1f };
+		float[] blue = new float[] { 0.1f, 0.1f, 0.4f };
+
+		//
+		Tile[] gTiles = p.getGrid().tiles;
+		int length = gTiles.length;
+
+		latColors = new float[length][];
+		for (int i = 0; i < length; ++i) {
+			float latitude = gTiles[i].latitude;
+
+			if (latitude < -1.0 || latitude > 1.0)
+				latColors[i] = purple;
+			else if (latitude < -0.5 || latitude > 0.5)
+				latColors[i] = yellow;
+			else if (latitude > 0)
+				latColors[i] = green;
+			else
+				latColors[i] = blue;
+		}
+	}
 }

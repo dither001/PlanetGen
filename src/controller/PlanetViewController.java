@@ -20,12 +20,14 @@ public class PlanetViewController {
 
 	private static ViewType viewType;
 
+	private static final int GRID_SIZE;
 	private static final GLProfile PROFILE;
 	private static final GLCapabilities CAPABILITIES;
 
 	static {
-		setViewType(ViewType.TOPOGRAPHY);
+		setViewType(ViewType.REGION);
 
+		GRID_SIZE = 2;
 		PROFILE = GLProfile.get(GLProfile.GL2);
 		CAPABILITIES = new GLCapabilities(PROFILE);
 	}
@@ -82,13 +84,17 @@ public class PlanetViewController {
 		GlobeView view = null;
 
 		try {
-			p = Planet.build(6);
+			p = Planet.build(GRID_SIZE);
+			//
 			PlanetColor.colorTopography(p);
 			PlanetColor.colorVegetation(p.getClimate().getSeason(), p);
 			PlanetColor.colorTemperature(p.getClimate().getSeason(), p);
 			PlanetColor.colorAridity(p.getClimate().getSeason(), p);
 			PlanetColor.colorHumidity(p.getClimate().getSeason(), p);
 			PlanetColor.colorPrecipitation(p.getClimate().getSeason(), p);
+			//
+			PlanetColor.colorRegions(p.getClimate().getSeason(), p);
+			PlanetColor.colorLatitude(p);
 
 			view = new GlobeView(p, p.rotationToDefault());
 		} catch (Exception e) {

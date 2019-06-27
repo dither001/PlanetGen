@@ -130,7 +130,9 @@ public class Season {
 		for (int i = 0; i < gTiles.length; ++i) {
 			float temperature = (float) temperatureAtLatitude(tropical_equator - Planet.latitude(gTiles[i].v));
 
-			if (gTiles[i].isLand() && planet.getElevationOfTile(i) > planet.getSeaLevel()) {
+			if (planet.tileIsLand(i) && planet.getElevationOfTile(i) > planet.getSeaLevel()) {
+				// if (gTiles[i].isLand() && planet.getElevationOfTile(i) >
+				// planet.getSeaLevel()) {
 				temperature -= Climate.temperatureLapse(planet.getElevationOfTile(i) - planet.getSeaLevel());
 			} else {
 				temperature = (float) (0.3 * temperature + 0.7 * temperatureAtLatitude(Planet.latitude(gTiles[i].v)));
@@ -179,7 +181,8 @@ public class Season {
 		for (Tile el : planet.grid.tiles) {
 			float humidity = 0.0f;
 
-			if (el.isWater()) {
+			if (planet.tileIsWater(el.id)) {
+				// if (el.isWater()) {
 				humidity = Climate.saturationHumidity(getTemperature(el.id));
 			}
 
@@ -203,7 +206,8 @@ public class Season {
 				current = planet.grid.tiles[i];
 
 				precipitation[i] = 0.0f;
-				if (current.isLand()) {
+				if (planet.tileIsLand(i)) {
+					// if (current.isLand()) {
 					humidity[i] = 0.0f;
 					float incomingWind = incomingWind(current);
 					float outgoingWind = outgoingWind(current);
@@ -328,7 +332,8 @@ public class Season {
 
 		float[] pgf = Planet.pressureGradientForce(tropical_equator, latitude);
 		double coriolis = Planet.coriolisCoeeficient(planet, latitude);
-		double friction = tile.isLand() ? 0.000045 : 0.000045;
+		double friction = planet.tileIsLand(tile.id) ? 0.000045 : 0.000045;
+		// double friction = tile.isLand() ? 0.000045 : 0.000045;
 
 		setWind(tile.id, Wind.prevailingWind(pgf, coriolis, friction));
 	}

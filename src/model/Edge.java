@@ -1,16 +1,13 @@
 package model;
 
-import api.LandType;
-import api.UsesTerrain;
-
-public class Edge implements UsesTerrain {
+public class Edge {
 	int id;
 
 	public Tile[] tiles;
 	Corner[] corners;
 
 	// terrain fields
-	public LandType type;
+//	public LandType type;
 
 	// climate fields
 	float river_flow;
@@ -26,7 +23,7 @@ public class Edge implements UsesTerrain {
 		corners = new Corner[2];
 
 		// terrain fields
-		type = LandType.LAND;
+//		type = LandType.LAND;
 
 		// climate fields
 		river_flow = 0;
@@ -55,15 +52,15 @@ public class Edge implements UsesTerrain {
 		}
 	}
 
-	@Override
-	public LandType getLandType() {
-		return type;
-	}
-
-	@Override
-	public void setLandType(LandType type) {
-		this.type = type;
-	}
+//	@Override
+//	public LandType getLandType() {
+//		return type;
+//	}
+//
+//	@Override
+//	public void setLandType(LandType type) {
+//		this.type = type;
+//	}
 
 	public int sign(Tile t) {
 		if (tiles[0].equals(t))

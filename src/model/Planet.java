@@ -54,6 +54,14 @@ public class Planet {
 		return terrain.getElevationOfTile(id);
 	}
 
+	public boolean tileIsLand(int id) {
+		return terrain.getTypeOfTile(id).isLand();
+	}
+
+	public boolean tileIsWater(int id) {
+		return terrain.getTypeOfTile(id).isWater();
+	}
+
 	/*
 	 * 
 	 */

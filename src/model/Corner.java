@@ -2,20 +2,20 @@ package model;
 
 import com.jogamp.opengl.math.VectorUtil;
 
-import api.LandType;
-import api.UsesTerrain;
-
-public class Corner implements UsesTerrain {
+public class Corner {
 	int id;
 	public float[] v;
+
+	//
+	public int region;
 
 	public Tile[] tiles;
 	public Corner[] corners;
 	Edge[] edges;
 
 	// terrain fields
-//	public float elevation;
-	public LandType type;
+	// public float elevation;
+	// public LandType type;
 
 	public int riverDirection;
 	public int distanceToSea;
@@ -36,9 +36,9 @@ public class Corner implements UsesTerrain {
 		edges = new Edge[3];
 
 		// terrain fields
-		type = LandType.LAND;
+		// type = LandType.LAND;
 
-//		elevation = 0;
+		// elevation = 0;
 		riverDirection = -1;
 		distanceToSea = -1;
 
@@ -59,26 +59,4 @@ public class Corner implements UsesTerrain {
 			tiles[i] = t[i];
 		}
 	}
-
-	/*
-	 * TERRAIN METHODS
-	 */
-//	public float getElevation() {
-//		return elevation;
-//	}
-
-//	public void setElevation(float elevation) {
-//		this.elevation = elevation;
-//	}
-
-	@Override
-	public LandType getLandType() {
-		return type;
-	}
-
-	@Override
-	public void setLandType(LandType type) {
-		this.type = type;
-	}
-
 }

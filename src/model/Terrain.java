@@ -63,6 +63,10 @@ public class Terrain {
 	private float[] elevationCorners;
 	private float[] elevationTiles;
 
+	private LandType[] terrainCorners;
+	private LandType[] terrainEdges;
+	private LandType[] terrainTiles;
+
 	/*
 	 * CONSTRUCTORS
 	 */
@@ -95,6 +99,18 @@ public class Terrain {
 
 	public float getElevationOfTile(int id) {
 		return elevationTiles[id];
+	}
+
+	public LandType getTypeOfCorner(int id) {
+		return terrainCorners[id];
+	}
+
+	public LandType getTypeOfEdge(int id) {
+		return terrainEdges[id];
+	}
+
+	public LandType getTypeOfTile(int id) {
+		return terrainTiles[id];
 	}
 
 	/*
@@ -217,7 +233,6 @@ public class Terrain {
 				}
 
 				return elevationTiles[tile.id];
-				// return tile.elevation;
 			};
 
 			while (waterTileSet.size() < waterTileTarget) {
@@ -225,22 +240,14 @@ public class Terrain {
 
 				while (unvisited.size() > 0 && elevationTiles[unvisited.iterator().next().id] < seaLevel)
 					insertNextTile.get();
-
-				// while (unvisited.size() > 0 && unvisited.iterator().next().elevation <
-				// seaLevel)
-				// insertNextTile.get();
 			}
 
 			if (waterTileSet.size() > 0)
 				seaLevel = (seaLevel + elevationTiles[waterTileSet.iterator().next().id]) / 2;
 
-			// if (waterTileSet.size() > 0)
-			// seaLevel = (seaLevel + waterTileSet.iterator().next().elevation) / 2;
-
 			for (Tile el : waterTileSet) {
 				el.water.surface = (float) seaLevel;
 				el.water.depth = (float) (seaLevel - elevationTiles[el.id]);
-				// el.water.depth = (float) (seaLevel - el.elevation);
 			}
 		}
 
@@ -253,15 +260,16 @@ public class Terrain {
 
 			if (elevationTiles[grid.tiles[i].id] < elevationTiles[lowest.id])
 				lowest = grid.tiles[i];
-
-			// if (grid.tiles[i].elevation < lowest.elevation)
-			// lowest = grid.tiles[i];
 		}
 
 		return lowest;
 	}
 
 	private void classifyTerrain() {
+		this.terrainCorners = new LandType[grid.corners.length];
+		this.terrainEdges = new LandType[grid.edges.length];
+		this.terrainTiles = new LandType[grid.tiles.length];
+
 		for (Tile el : grid.tiles)
 			classifyTileHelper(el);
 
@@ -282,13 +290,11 @@ public class Terrain {
 				++land;
 		}
 
-		/*
-		 * XXX - For some reason, tile classification is handled differently from Corner
-		 * and Edge classification (which both use ternary expression).
-		 */
-		tile.type = tile.water.depth > 0 ? LandType.WATER : LandType.LAND;
-		if (land > 0 && water > 0)
-			tile.type = LandType.COAST;
+		terrainTiles[tile.id] = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
+		// terrainTiles[tile.id] = tile.water.depth > 0 ? LandType.WATER :
+		// LandType.LAND;
+		// if (land > 0 && water > 0)
+		// terrainTiles[tile.id] = LandType.COAST;
 	}
 
 	private void classifyCornerHelper(Corner corner) {
@@ -301,7 +307,7 @@ public class Terrain {
 				++land;
 		}
 
-		corner.type = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
+		terrainCorners[corner.id] = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
 	}
 
 	private void classifyEdgeHelper(Edge edge) {
@@ -314,14 +320,14 @@ public class Terrain {
 				++land;
 		}
 
-		edge.type = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
+		terrainEdges[edge.id] = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
 	}
 
 	private void setRiverDirections() {
 		HashSet<Corner> endpoints = new HashSet<Corner>();
 
 		for (Corner el : grid.corners) {
-			if (el.isCoast()) {
+			if (getTypeOfCorner(el.id).isCoast()) {
 				el.distanceToSea = 0;
 				endpoints.add(el);
 			}
@@ -332,7 +338,7 @@ public class Terrain {
 			Corner current = it.next();
 
 			for (Corner el : current.corners) {
-				if (el.isLand() && el.riverDirection == -1) {
+				if (getTypeOfCorner(el.id).isLand() && el.riverDirection == -1) {
 					// XXX - I might need to swap current & el
 					el.riverDirection = Grid.position(current, el);
 					el.distanceToSea = 1 + current.distanceToSea;

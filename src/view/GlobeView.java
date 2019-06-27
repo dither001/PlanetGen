@@ -95,20 +95,6 @@ public class GlobeView extends PlanetView implements GLEventListener {
 	/*
 	 * METHODS
 	 */
-	private void drawTileOld(Tile t, Matrix3 m, float[] color, GL2 gl) {
-		gl.glBegin(GL2.GL_TRIANGLE_FAN);
-
-		JO.glColor3f(gl, color);
-		JO.glVertex3f(gl, m.multVec3(t.v));
-		for (Corner el : t.corners)
-			JO.glVertex3f(gl, m.multVec3(el.v));
-
-		JO.glVertex3f(gl, m.multVec3(t.corners[0].v));
-
-		// System.out.println("Drew tile");
-		gl.glEnd();
-	}
-
 	private void setMatrix(GL2 gl) {
 		// added Matrix Mode
 		gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
@@ -119,9 +105,6 @@ public class GlobeView extends PlanetView implements GLEventListener {
 		gl.glOrtho(-x, x, -y, y, -2.0, 0.0);
 	}
 
-	/*
-	 * "Draw()" method from vraid's "Globe_Renderer" object.
-	 */
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		final GL2 gl = drawable.getGL().getGL2();
@@ -133,7 +116,10 @@ public class GlobeView extends PlanetView implements GLEventListener {
 
 		// gl.glTranslatef(0f, 0f, -15.0f);
 		// gl.glRotatef(rquad, 1.0f, 1.0f, 1.0f);
-		gl.glRotatef(rquad, 0, 1.0f, 0);
+		gl.glRotatef(-90.0f, 0.95f, 0.1f, -0.1f); // rotate up
+		// gl.glRotatef(rquad, 0, 1.0f, 0); // rotate left
+		// gl.glRotatef(rquad, 1.0f, 0, 0); // rotate up
+		gl.glRotatef(rquad, 0, 0, 1.0f); // spin
 
 		// gl.glFrontFace(GL.GL_CCW);
 		Matrix3 m = new Matrix3(q.mult(rotation()));
@@ -160,7 +146,7 @@ public class GlobeView extends PlanetView implements GLEventListener {
 
 		for (int i = 0; i < length; ++i) {
 			// TOPOGRAPHY
-			if (PlanetViewController.getViewType().equals(ViewType.TOPOGRAPHY))
+			if (PlanetViewController.getViewType().equals(ViewType.ELEVATION))
 				drawTile.accept(gTiles[i], PlanetColor.topoColors[i]);
 
 			// VEGETATION
@@ -182,6 +168,14 @@ public class GlobeView extends PlanetView implements GLEventListener {
 			// PRECIPITATION
 			if (PlanetViewController.getViewType().equals(ViewType.PRECIPITATION))
 				drawTile.accept(gTiles[i], PlanetColor.rainColors[i]);
+
+			// REGIONS
+			if (PlanetViewController.getViewType().equals(ViewType.REGION))
+				drawTile.accept(gTiles[i], PlanetColor.regionColors[i]);
+
+			// LATITUDE
+			if (PlanetViewController.getViewType().equals(ViewType.LATITUDE))
+				drawTile.accept(gTiles[i], PlanetColor.latColors[i]);
 		}
 
 		gl.glFlush();
@@ -201,14 +195,14 @@ public class GlobeView extends PlanetView implements GLEventListener {
 	 */
 	@Override
 	public void init(GLAutoDrawable drawable) {
-		// final GL2 gl = drawable.getGL().getGL2();
+		final GL2 gl = drawable.getGL().getGL2();
 
-		// gl.glShadeModel(GL2.GL_SMOOTH);
-		// gl.glClearColor(0f, 0f, 0f, 0f);
-		// gl.glClearDepth(1.0f);
-		// gl.glEnable(GL2.GL_DEPTH_TEST);
-		// gl.glDepthFunc(GL2.GL_LEQUAL);
-		// gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
+		gl.glShadeModel(GL2.GL_SMOOTH);
+		gl.glClearColor(0f, 0f, 0f, 0f);
+		gl.glClearDepth(1.0f);
+		gl.glEnable(GL2.GL_DEPTH_TEST);
+		gl.glDepthFunc(GL2.GL_LEQUAL);
+		gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
 	}
 
 	@Override

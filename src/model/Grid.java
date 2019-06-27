@@ -27,6 +27,9 @@ public class Grid {
 	public Corner[] corners;
 	public Edge[] edges;
 
+	/*
+	 * CONSTRUCTORS
+	 */
 	private Grid(int size) {
 		this.size = size;
 
@@ -94,13 +97,39 @@ public class Grid {
 	}
 
 	/*
+	 * PRIVATE METHODS
+	 */
+	private void setupLatitude() {
+		float highest = 0, lowest = 0;
+
+		for (Tile el : tiles) {
+			el.latitude = Planet.latitude(el.v);
+
+			highest = el.latitude > highest ? el.latitude : highest;
+			lowest = el.latitude < lowest ? el.latitude : lowest;
+		}
+
+		// System.out.println(highest);
+		// System.out.println(lowest);
+	}
+
+	/*
 	 * STATIC METHODS
 	 */
 	public static Grid build(int size) {
+		Grid grid = buildHelper(size);
+
+		//
+		grid.setupLatitude();
+
+		return grid;
+	}
+
+	private static Grid buildHelper(int size) {
 		if (size == 0)
 			return sizeZeroGrid();
 		else
-			return subdivide(build(size - 1));
+			return subdivide(buildHelper(size - 1));
 	}
 
 	private static Grid subdivide(Grid prev) {
@@ -206,15 +235,15 @@ public class Grid {
 		return grid;
 	}
 
-	public static int tileCount(int size) {
+	private static int tileCount(int size) {
 		return (int) (10 * Math.pow(3, size) + 2);
 	}
 
-	public static int cornerCount(int size) {
+	private static int cornerCount(int size) {
 		return (int) (20 * Math.pow(3, size));
 	}
 
-	public static int edgeCount(int size) {
+	private static int edgeCount(int size) {
 		return (int) (30 * Math.pow(3, size));
 	}
 
