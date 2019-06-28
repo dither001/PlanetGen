@@ -14,7 +14,7 @@ public class GlobePanel extends GLCanvas {
 		super(capabilities);
 		// GLCanvas glcanvas = new GLCanvas(capabilities);
 		// glcanvas.addGLEventListener(createGlobeView());
-		this.setSize(400, 400);
+		this.setSize(600, 600);
 
 	}
 

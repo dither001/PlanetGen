@@ -2,13 +2,16 @@ package model;
 
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.VectorUtil;
+import com.planet.hydrosphere.Water;
 
+import api.LandType;
 import controller.Parameters;
 import controller.PlanetUtil;
 
 public class Planet {
 	protected Grid grid;
 	protected Terrain terrain;
+	private Water water;
 	protected Climate climate;
 
 	/*
@@ -27,12 +30,24 @@ public class Planet {
 		this.grid = grid;
 	}
 
+	public int tileSize() {
+		return grid.tileSize();
+	}
+
 	public Terrain getTerrain() {
 		return terrain;
 	}
 
 	public void setTerrain(Terrain terrain) {
 		this.terrain = terrain;
+	}
+
+	public Water getWater() {
+		return water;
+	}
+
+	public void setWater(Water water) {
+		this.water = water;
 	}
 
 	public Climate getClimate() {
@@ -54,6 +69,14 @@ public class Planet {
 		return terrain.getElevationOfTile(id);
 	}
 
+	public float getDepthAtTile(int id) {
+		return water.getDepthAtTile(id);
+	}
+
+	public float getSurfaceAtTile(int id) {
+		return water.getSurfaceAtTile(id);
+	}
+
 	public boolean tileIsLand(int id) {
 		return terrain.getTypeOfTile(id).isLand();
 	}
@@ -63,7 +86,74 @@ public class Planet {
 	}
 
 	/*
-	 * 
+	 * PRIVATE METHODS
+	 */
+	private void classifyTerrain() {
+		terrain.terrainCorners = new LandType[grid.corners.length];
+		terrain.terrainEdges = new LandType[grid.edges.length];
+		terrain.terrainTiles = new LandType[grid.tiles.length];
+
+		for (Tile el : grid.tiles)
+			classifyTileHelper(el);
+
+		for (Corner el : grid.corners)
+			classifyCornerHelper(el);
+
+		for (Edge el : grid.edges)
+			classifyEdgeHelper(el);
+	}
+
+	private void classifyTileHelper(Tile tile) {
+		int land = 0, sea = 0;
+
+		for (Tile el : tile.tiles) {
+			// (el.water.depth > 0)
+			if (water.getDepthAtTile(el.id) > 0)
+				++sea;
+			else
+				++land;
+		}
+
+		terrain.terrainTiles[tile.id] = land > 0 && sea > 0 ? LandType.COAST
+				: land > 0 ? LandType.LAND : LandType.WATER;
+		// terrainTiles[tile.id] = tile.water.depth > 0 ? LandType.WATER :
+		// LandType.LAND;
+		// if (land > 0 && water > 0)
+		// terrainTiles[tile.id] = LandType.COAST;
+	}
+
+	private void classifyCornerHelper(Corner corner) {
+		int land = 0, sea = 0;
+
+		for (Tile el : corner.tiles) {
+			// if (el.water.depth > 0)
+			if (water.getDepthAtTile(el.id) > 0)
+				++sea;
+			else
+				++land;
+		}
+
+		terrain.terrainCorners[corner.id] = land > 0 && sea > 0 ? LandType.COAST
+				: land > 0 ? LandType.LAND : LandType.WATER;
+	}
+
+	private void classifyEdgeHelper(Edge edge) {
+		int land = 0, sea = 0;
+
+		for (Tile el : edge.tiles) {
+			// if (el.water.depth > 0)
+			if (water.getDepthAtTile(el.id) > 0)
+				++sea;
+			else
+				++land;
+		}
+
+		terrain.terrainEdges[edge.id] = land > 0 && sea > 0 ? LandType.COAST
+				: land > 0 ? LandType.LAND : LandType.WATER;
+	}
+
+	/*
+	 * INSTANCE METHODS
 	 */
 	public double area(Tile t) {
 		double a = 0.0;
@@ -109,7 +199,7 @@ public class Planet {
 	}
 
 	public float getSeaLevel() {
-		return terrain.seaLevel;
+		return water.getSeaLevel();
 	}
 
 	/*
@@ -127,7 +217,7 @@ public class Planet {
 	}
 
 	/*
-	 * 
+	 * STATIC METHODS
 	 */
 	public static Planet build(int size) throws Exception {
 		if (size < 9) {
@@ -135,6 +225,8 @@ public class Planet {
 
 			planet.setGrid(Grid.build(size));
 			planet.setTerrain(Terrain.build(planet));
+			planet.setWater(Water.build(planet));
+			planet.classifyTerrain();
 			planet.setClimate(Climate.build(planet));
 
 			return planet;

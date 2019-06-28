@@ -56,7 +56,13 @@ public class Grid {
 	 * INSTANCE METHODS
 	 */
 	private void addCorner(int index, int t1, int t2, int t3) {
+		addCorner(index, t1, t2, t3, false);
+	}
+
+	private void addCorner(int index, int t1, int t2, int t3, boolean setRegion) {
 		corners[index].addCorner(new Tile[] { tiles[t1], tiles[t2], tiles[t3] });
+		if (setRegion)
+			corners[index].region = tiles[t1].region;
 	}
 
 	public void addEdge(int index, int t1, int t2) {
@@ -151,6 +157,8 @@ public class Grid {
 		// OLD CORNERS BECOMES TILES
 		for (int i = 0; i < prev_corner_count; i++) {
 			grid.tiles[i + prev_tile_count].v = prev.corners[i].v;
+			//
+			grid.tiles[i + prev_tile_count].region = prev.corners[i].region;
 
 			for (int k = 0; k < 3; k++) {
 				grid.tiles[i + prev_tile_count].tiles[2 * k] = grid.tiles[prev.corners[i].corners[k].id
@@ -164,7 +172,8 @@ public class Grid {
 		for (Tile n : prev.tiles) {
 			Tile t = grid.tiles[n.id];
 			for (int k = 0; k < t.edgeCount; k++) {
-				grid.addCorner(next_corner_id, t.id, t.tiles[(k + t.edgeCount - 1) % t.edgeCount].id, t.tiles[k].id);
+				grid.addCorner(next_corner_id, t.id, t.tiles[(k + t.edgeCount - 1) % t.edgeCount].id, t.tiles[k].id,
+						true);
 				++next_corner_id;
 			}
 		}

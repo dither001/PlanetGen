@@ -52,7 +52,7 @@ public class Terrain {
 	private float[] axis;
 	private float axial_tilt;
 	private float radius;
-	protected float seaLevel;
+	// protected float seaLevel;
 
 	private Grid grid;
 
@@ -60,12 +60,12 @@ public class Terrain {
 	 * INSTANCE FIELDS
 	 */
 	private Planet planet;
-	private float[] elevationCorners;
-	private float[] elevationTiles;
+	float[] elevationCorners;
+	float[] elevationTiles;
 
-	private LandType[] terrainCorners;
-	private LandType[] terrainEdges;
-	private LandType[] terrainTiles;
+	LandType[] terrainCorners;
+	LandType[] terrainEdges;
+	LandType[] terrainTiles;
 
 	/*
 	 * CONSTRUCTORS
@@ -93,12 +93,20 @@ public class Terrain {
 		this.grid = grid;
 	}
 
+	public float[] getElevationTiles() {
+		return elevationTiles;
+	}
+
+	public void setElevationTiles(float[] elevationTiles) {
+		this.elevationTiles = elevationTiles;
+	}
+
 	public float getElevationOfCorner(int id) {
 		return elevationCorners[id];
 	}
 
 	public float getElevationOfTile(int id) {
-		return elevationTiles[id];
+		return getElevationTiles()[id];
 	}
 
 	public LandType getTypeOfCorner(int id) {
@@ -111,6 +119,17 @@ public class Terrain {
 
 	public LandType getTypeOfTile(int id) {
 		return terrainTiles[id];
+	}
+
+	public Tile lowestTile() {
+		Tile lowest = grid.tiles[0];
+		for (int i = 0; i < grid.tiles.length; ++i) {
+
+			if (getElevationTiles()[grid.tiles[i].id] < getElevationTiles()[lowest.id])
+				lowest = grid.tiles[i];
+		}
+
+		return lowest;
 	}
 
 	/*
@@ -129,7 +148,7 @@ public class Terrain {
 	 */
 	private void setupElevation() {
 		this.elevationCorners = new float[grid.corners.length];
-		this.elevationTiles = new float[grid.tiles.length];
+		this.setElevationTiles(new float[grid.tiles.length]);
 		/*
 		 * First step appears to create 1,000 Vec3[3] arrays with points uniformly
 		 * distributed over a unit sphere.
@@ -139,7 +158,7 @@ public class Terrain {
 		List<float[][]> d = Dice.elevationVectors(Parameters.iterations);
 
 		for (Tile el : grid.tiles)
-			elevationTiles[el.id] = elevationHelper(el.v, d);
+			getElevationTiles()[el.id] = elevationHelper(el.v, d);
 
 		for (Corner el : grid.corners)
 			elevationCorners[el.id] = elevationHelper(el.v, d);
@@ -147,11 +166,11 @@ public class Terrain {
 		/*
 		 * SCALE ELEVATION - was separate method; just moved it here
 		 */
-		float lowest = elevationTiles[0], highest = lowest;
+		float lowest = getElevationTiles()[0], highest = lowest;
 
 		for (Tile el : grid.tiles) {
-			lowest = elevationTiles[el.id] < lowest ? elevationTiles[el.id] : highest;
-			highest = elevationTiles[el.id] > highest ? elevationTiles[el.id] : highest;
+			lowest = getElevationTiles()[el.id] < lowest ? getElevationTiles()[el.id] : highest;
+			highest = getElevationTiles()[el.id] > highest ? getElevationTiles()[el.id] : highest;
 		}
 
 		for (Corner el : grid.corners) {
@@ -163,8 +182,8 @@ public class Terrain {
 		float scalar = SCALE / highest;
 
 		for (Tile el : grid.tiles) {
-			elevationTiles[el.id] -= lowest;
-			elevationTiles[el.id] *= scalar;
+			getElevationTiles()[el.id] -= lowest;
+			getElevationTiles()[el.id] *= scalar;
 		}
 
 		for (Corner el : grid.corners) {
@@ -187,140 +206,6 @@ public class Terrain {
 		}
 
 		return elevation;
-	}
-
-	private void createSea() {
-		Tile start = lowestTile();
-
-		float seaLevel = elevationTiles[start.id];
-		// float seaLevel = start.elevation;
-
-		int waterTileTarget = (int) (Parameters.water_ratio * grid.tiles.length);
-
-		HashSet<Tile> waterTileSet = new HashSet<Tile>();
-		boolean[] coastalTileArray = new boolean[grid.tiles.length];
-		// Arrays.fill(coastalTileArray, true);
-
-		HashSet<Tile> unvisited = new HashSet<Tile>();
-		HashSet<Tile> visited = new HashSet<Tile>();
-
-		if (waterTileTarget > 0) {
-			waterTileSet.add(start);
-
-			// setup
-			for (Tile el : start.tiles) {
-				coastalTileArray[el.id] = true;
-				unvisited.add(el);
-			}
-
-			/*
-			 * Anonymous function "InsertNextTile" iterates through adjacent tiles and adds
-			 * them to unvisited if they aren't already in the WaterTileSet.
-			 */
-			Supplier<Float> insertNextTile = () -> {
-				Tile tile = unvisited.iterator().next();
-				unvisited.remove(tile);
-				visited.add(tile);
-
-				//
-				waterTileSet.add(tile);
-				coastalTileArray[tile.id] = false;
-				for (Tile el : tile.tiles) {
-					if (!(waterTileSet.contains(el)) && !(coastalTileArray[el.id])) {
-						unvisited.add(el);
-						coastalTileArray[tile.id] = true;
-					}
-				}
-
-				return elevationTiles[tile.id];
-			};
-
-			while (waterTileSet.size() < waterTileTarget) {
-				seaLevel = (float) insertNextTile.get();
-
-				while (unvisited.size() > 0 && elevationTiles[unvisited.iterator().next().id] < seaLevel)
-					insertNextTile.get();
-			}
-
-			if (waterTileSet.size() > 0)
-				seaLevel = (seaLevel + elevationTiles[waterTileSet.iterator().next().id]) / 2;
-
-			for (Tile el : waterTileSet) {
-				el.water.surface = (float) seaLevel;
-				el.water.depth = (float) (seaLevel - elevationTiles[el.id]);
-			}
-		}
-
-		this.seaLevel = seaLevel;
-	}
-
-	private Tile lowestTile() {
-		Tile lowest = grid.tiles[0];
-		for (int i = 0; i < grid.tiles.length; ++i) {
-
-			if (elevationTiles[grid.tiles[i].id] < elevationTiles[lowest.id])
-				lowest = grid.tiles[i];
-		}
-
-		return lowest;
-	}
-
-	private void classifyTerrain() {
-		this.terrainCorners = new LandType[grid.corners.length];
-		this.terrainEdges = new LandType[grid.edges.length];
-		this.terrainTiles = new LandType[grid.tiles.length];
-
-		for (Tile el : grid.tiles)
-			classifyTileHelper(el);
-
-		for (Corner el : grid.corners)
-			classifyCornerHelper(el);
-
-		for (Edge el : grid.edges)
-			classifyEdgeHelper(el);
-	}
-
-	private void classifyTileHelper(Tile tile) {
-		int land = 0, water = 0;
-
-		for (Tile el : tile.tiles) {
-			if (el.water.depth > 0)
-				++water;
-			else
-				++land;
-		}
-
-		terrainTiles[tile.id] = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
-		// terrainTiles[tile.id] = tile.water.depth > 0 ? LandType.WATER :
-		// LandType.LAND;
-		// if (land > 0 && water > 0)
-		// terrainTiles[tile.id] = LandType.COAST;
-	}
-
-	private void classifyCornerHelper(Corner corner) {
-		int land = 0, water = 0;
-
-		for (Tile el : corner.tiles) {
-			if (el.water.depth > 0)
-				++water;
-			else
-				++land;
-		}
-
-		terrainCorners[corner.id] = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
-	}
-
-	private void classifyEdgeHelper(Edge edge) {
-		int land = 0, water = 0;
-
-		for (Tile el : edge.tiles) {
-			if (el.water.depth > 0)
-				++water;
-			else
-				++land;
-		}
-
-		terrainEdges[edge.id] = land > 0 && water > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
 	}
 
 	private void setRiverDirections() {
@@ -359,20 +244,12 @@ public class Terrain {
 		terrain.setPlanet(planet);
 		terrain.setGrid(planet.getGrid());
 
-		// set_grid_size(planet, parameters.grid_size)
-
-		//
-		// terrain.initializeTerrain(grid);
-
 		// parameters
 		terrain.axis = Parameters.axis;
 		terrain.setRadius(40000000);
 
 		//
 		terrain.setupElevation();
-		terrain.createSea();
-		terrain.classifyTerrain();
-		terrain.setRiverDirections();
 
 		return terrain;
 	}

@@ -25,7 +25,7 @@ public class PlanetViewController {
 	private static final GLCapabilities CAPABILITIES;
 
 	static {
-		setViewType(ViewType.REGION);
+		setViewType(ViewType.ELEVATION);
 
 		GRID_SIZE = 6;
 		PROFILE = GLProfile.get(GLProfile.GL2);
@@ -56,6 +56,7 @@ public class PlanetViewController {
 		d.height += 23; // menu height isn't determined until display
 
 		frame.setSize(d);
+		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 

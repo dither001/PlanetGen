@@ -126,9 +126,8 @@ public abstract class PlanetColor {
 			double ratio = 0.0;
 
 			if (p.tileIsWater(i)) {
-				// if (gTiles[i].isWater()) {
 				// WATER
-				ratio = Math.min(1, gTiles[i].getWaterDepth() / 400);
+				ratio = Math.min(1, p.getDepthAtTile(i) / 400);
 				vegeColors[i] = interpolateColor(shallow, deepWater, ratio);
 
 			} else {
@@ -333,8 +332,8 @@ public abstract class PlanetColor {
 		for (int i = 0; i < length; ++i) {
 			Tile current = gTiles[i];
 
-			if (i > 11)
-				regionColors[i] = regions[i % 20];
+			if (current.region != -1)
+				regionColors[i] = regions[current.region];
 			else
 				regionColors[i] = new float[] { 1, 1, 1 };
 		}
