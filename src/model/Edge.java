@@ -1,17 +1,17 @@
 package model;
 
 public class Edge {
-	int id;
+	public int id;
 
 	public Tile[] tiles;
 	Corner[] corners;
 
 	// terrain fields
-//	public LandType type;
+	// public LandType type;
 
 	// climate fields
-	float river_flow;
-	float wind_velocity;
+	// float river_flow;
+	// float wind_velocity;
 
 	/*
 	 * CONSTRUCTORS
@@ -23,11 +23,11 @@ public class Edge {
 		corners = new Corner[2];
 
 		// terrain fields
-//		type = LandType.LAND;
+		// type = LandType.LAND;
 
 		// climate fields
-		river_flow = 0;
-		wind_velocity = 0;
+		// river_flow = 0;
+		// wind_velocity = 0;
 	}
 
 	/*
@@ -52,16 +52,6 @@ public class Edge {
 		}
 	}
 
-//	@Override
-//	public LandType getLandType() {
-//		return type;
-//	}
-//
-//	@Override
-//	public void setLandType(LandType type) {
-//		this.type = type;
-//	}
-
 	public int sign(Tile t) {
 		if (tiles[0].equals(t))
 			return 1;
@@ -70,5 +60,5 @@ public class Edge {
 		else
 			return 0;
 	}
-	
+
 }

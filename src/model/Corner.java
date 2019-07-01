@@ -3,7 +3,7 @@ package model;
 import com.jogamp.opengl.math.VectorUtil;
 
 public class Corner {
-	int id;
+	public int id;
 	public float[] v;
 
 	//

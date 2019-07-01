@@ -1,12 +1,17 @@
 package graphics;
 
-import model.Climate;
+import com.planet.atmosphere.Climate;
+import com.planet.atmosphere.Season;
+
+import controller.PlanetViewController;
 import model.Planet;
-import model.Season;
 import model.Tile;
 
 public abstract class PlanetColor {
 
+	public static float[][] tileColors;
+	
+	//
 	public static float[][] topoColors;
 	public static float[][] vegeColors;
 	public static float[][] tempColors;
@@ -21,7 +26,7 @@ public abstract class PlanetColor {
 	 * COLOR METHODS
 	 */
 	public static void setupColors(Planet p) {
-		Season s = p.getClimate().getSeason();
+		Season s = p.getClimate().getSeason(0);
 
 		//
 		colorTopography(p);
@@ -36,12 +41,28 @@ public abstract class PlanetColor {
 		colorLatitude(p);
 	}
 
-	private static float[] color() {
-		return new float[] { 0, 0, 0 };
-	}
+	public static void updateColors(int season, Planet p) {
+		Season s = p.getClimate().getSeason(season);
 
-	private static float[] color(float r, float g, float b) {
-		return new float[] { r, g, b };
+		switch (PlanetViewController.getViewType()) {
+		case ARIDITY:
+			colorAridity(s, p);
+			break;
+		case HUMIDITY:
+			colorHumidity(s, p);
+			break;
+		case PRECIPITATION:
+			colorPrecipitation(s, p);
+			break;
+		case TEMPERATURE:
+			colorTemperature(s, p);
+			break;
+		case VEGETATION:
+			colorVegetation(s, p);
+			break;
+		default:
+			break;
+		}
 	}
 
 	private static float[] interpolateColor(float[] a, float[] b, double ratio) {
@@ -111,8 +132,8 @@ public abstract class PlanetColor {
 	 * VEGETATION
 	 */
 	private static void colorVegetation(Season s, Planet p) {
-		float[] deepWater = new float[] { 0.0f, 0.0f, 0.25f };
-		float[] shallow = new float[] { 0.0f, 0.4f, 0.6f };
+		float[] deepWater = Color.NAVY_BLUE.rgb();
+		float[] shallow = Color.LIGHT_BLUE.rgb();
 		float[] snow = new float[] { 1.0f, 1.0f, 1.0f };
 		float[] lowland = new float[] { 0.95f, 0.81f, 0.53f };
 		float[] highland = new float[] { 0.1f, 0.1f, 0.1f };
@@ -149,7 +170,7 @@ public abstract class PlanetColor {
 	 */
 	private static void colorTemperature(Season s, Planet p) {
 		float[][] colors = new float[][] { //
-				{ 1.0f, 1.0f, 1.0f }, //
+				Color.WHITE.rgb(), //
 				{ 0.7f, 0f, 0.5f }, //
 				{ 0f, 0f, 0.5f }, //
 				{ 0f, 0f, 1.0f }, //
@@ -182,14 +203,13 @@ public abstract class PlanetColor {
 				}
 			}
 		}
-
 	}
 
 	/*
 	 * ARIDITY
 	 */
 	private static void colorAridity(Season s, Planet p) {
-		float[] water = new float[] { 1, 1, 1 };
+		float[] water = Color.WHITE.rgb();
 		float[][] colors = new float[][] { { 1, 0, 0 }, { 1, 1, 0 }, { 0, 1, 0 }, { 0, 0.5f, 0 } };
 		float[] limit = new float[] { 2, 1, 0.5f, 0 };
 
@@ -221,7 +241,7 @@ public abstract class PlanetColor {
 	 * HUMIDITY
 	 */
 	private static void colorHumidity(Season s, Planet p) {
-		float[] water = new float[] { 1, 1, 1 };
+		float[] water = Color.WHITE.rgb();
 		float[] dryland = new float[] { 1, 1, 0.5f };
 		float[] midland = new float[] { 1, 1, 0 };
 		float[] humid = new float[] { 0, 0.7f, 0 };
@@ -233,7 +253,6 @@ public abstract class PlanetColor {
 		humidColors = new float[length][];
 		for (int i = 0; i < length; ++i) {
 			if (p.tileIsWater(i)) {
-				// if (gTiles[i].isWater()) {
 				humidColors[i] = water;
 			} else {
 				double humidity = s.getHumidity(i) / Climate.saturationHumidity(s.getTemperature(i));
@@ -253,7 +272,7 @@ public abstract class PlanetColor {
 	 * PRECIPITATION
 	 */
 	private static void colorPrecipitation(Season s, Planet p) {
-		float[] water = new float[] { 1, 1, 1 };
+		float[] water = Color.WHITE.rgb();
 		float[] dry = new float[] { 1, 1, 0.5f };
 		float[] medium = new float[] { 0, 1, 0 };
 		float[] wet = new float[] { 0, 0, 1 };
@@ -268,7 +287,6 @@ public abstract class PlanetColor {
 			double low = high / 10;
 
 			if (p.tileIsWater(i)) {
-				// if (gTiles[i].isWater()) {
 				rainColors[i] = water;
 			} else {
 				double ratio = 0.0;
@@ -301,6 +319,9 @@ public abstract class PlanetColor {
 		Tile[] gTiles = p.getGrid().tiles;
 		int length = gTiles.length;
 
+		/*
+		 * XXX - Doesn't currently save to anything important.
+		 */
 		float[][] stainedGlass = new float[length][];
 		for (int i = 0; i < length; ++i) {
 			if (i > 11)

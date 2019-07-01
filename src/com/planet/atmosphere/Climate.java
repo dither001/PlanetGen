@@ -1,6 +1,7 @@
-package model;
+package com.planet.atmosphere;
 
 import controller.Parameters;
+import model.Planet;
 
 public class Climate {
 
@@ -17,43 +18,19 @@ public class Climate {
 	/*
 	 * 
 	 */
-	public Season getSeason() {
-		return seasons[0];
+	public Season getSeason(int id) {
+		return seasons[id];
 	}
 
 	/*
 	 * PRIVATE METHODS
 	 */
-	void clear() {
-		// TODO
-
-	}
-
 	private void generateSeasons() {
+		//
 		for (int i = 0; i < seasons.length; ++i) {
 			float t = i / seasons.length;
 			seasons[i] = Season.build(i, t, planet);
 		}
-
-		// Climate_generation_season season;
-		// season.tiles.resize(tile_count(planet));
-		// season.corners.resize(corner_count(planet));
-		// season.edges.resize(edge_count(planet));
-
-		// season.var.time_of_year = time_of_year;
-		// season.var.solar_equator = axial_tilt(planet) * sin(2.0*pi*time_of_year);
-		// season.tropical_equator = 0.67*season.var.solar_equator;
-
-		// _set_temperature(planet, par, season);
-		// _set_wind(planet, par, season);
-		// _set_humidity(planet, par, season);
-
-		// Season s;
-		// s.tiles.resize(tile_count(planet));
-		// s.corners.resize(corner_count(planet));
-		// s.edges.resize(edge_count(planet));
-		// copy_season(season, s);
-		// m_climate(planet).seasons.push_back(s);
 	}
 
 	/*

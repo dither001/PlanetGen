@@ -2,32 +2,44 @@ package model;
 
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.VectorUtil;
+import com.planet.atmosphere.Climate;
 import com.planet.hydrosphere.Water;
+import com.planet.lithosphere.Terrain;
 
 import api.LandType;
 import controller.Parameters;
 import controller.PlanetUtil;
 
 public class Planet {
+
+	private float radius;
+
 	protected Grid grid;
 	protected Terrain terrain;
 	private Water water;
 	protected Climate climate;
 
+	private LandType[] cornerTypes;
+	private LandType[] edgeTypes;
+	private LandType[] tileTypes;
+
 	/*
-	 * 
+	 * INSTANCE FIELDS
 	 */
-	public void clear() {
-		// TODO
-
-	}
-
 	public Grid getGrid() {
 		return grid;
 	}
 
 	public void setGrid(Grid grid) {
 		this.grid = grid;
+	}
+
+	public int cornerSize() {
+		return grid.cornerSize();
+	}
+
+	public int edgeSize() {
+		return grid.edgeSize();
 	}
 
 	public int tileSize() {
@@ -78,20 +90,32 @@ public class Planet {
 	}
 
 	public boolean tileIsLand(int id) {
-		return terrain.getTypeOfTile(id).isLand();
+		return tileTypes[id].isLand();
 	}
 
 	public boolean tileIsWater(int id) {
-		return terrain.getTypeOfTile(id).isWater();
+		return tileTypes[id].isWater();
 	}
+
+	public LandType getTypeOfCorner(int id) {
+		return cornerTypes[id];
+	}
+
+	// public LandType getTypeOfEdge(int id) {
+	// return terrainEdges[id];
+	// }
+	//
+	// public LandType getTypeOfTile(int id) {
+	// return terrainTiles[id];
+	// }
 
 	/*
 	 * PRIVATE METHODS
 	 */
 	private void classifyTerrain() {
-		terrain.terrainCorners = new LandType[grid.corners.length];
-		terrain.terrainEdges = new LandType[grid.edges.length];
-		terrain.terrainTiles = new LandType[grid.tiles.length];
+		cornerTypes = new LandType[grid.corners.length];
+		edgeTypes = new LandType[grid.edges.length];
+		tileTypes = new LandType[grid.tiles.length];
 
 		for (Tile el : grid.tiles)
 			classifyTileHelper(el);
@@ -107,49 +131,39 @@ public class Planet {
 		int land = 0, sea = 0;
 
 		for (Tile el : tile.tiles) {
-			// (el.water.depth > 0)
 			if (water.getDepthAtTile(el.id) > 0)
 				++sea;
 			else
 				++land;
 		}
 
-		terrain.terrainTiles[tile.id] = land > 0 && sea > 0 ? LandType.COAST
-				: land > 0 ? LandType.LAND : LandType.WATER;
-		// terrainTiles[tile.id] = tile.water.depth > 0 ? LandType.WATER :
-		// LandType.LAND;
-		// if (land > 0 && water > 0)
-		// terrainTiles[tile.id] = LandType.COAST;
+		tileTypes[tile.id] = land > 0 && sea > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
 	}
 
 	private void classifyCornerHelper(Corner corner) {
 		int land = 0, sea = 0;
 
 		for (Tile el : corner.tiles) {
-			// if (el.water.depth > 0)
 			if (water.getDepthAtTile(el.id) > 0)
 				++sea;
 			else
 				++land;
 		}
 
-		terrain.terrainCorners[corner.id] = land > 0 && sea > 0 ? LandType.COAST
-				: land > 0 ? LandType.LAND : LandType.WATER;
+		cornerTypes[corner.id] = land > 0 && sea > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
 	}
 
 	private void classifyEdgeHelper(Edge edge) {
 		int land = 0, sea = 0;
 
 		for (Tile el : edge.tiles) {
-			// if (el.water.depth > 0)
 			if (water.getDepthAtTile(el.id) > 0)
 				++sea;
 			else
 				++land;
 		}
 
-		terrain.terrainEdges[edge.id] = land > 0 && sea > 0 ? LandType.COAST
-				: land > 0 ? LandType.LAND : LandType.WATER;
+		edgeTypes[edge.id] = land > 0 && sea > 0 ? LandType.COAST : land > 0 ? LandType.LAND : LandType.WATER;
 	}
 
 	/*
@@ -171,11 +185,11 @@ public class Planet {
 					* VectorUtil.distVec3(t.v, t.corners[(i + 1) % e].v);
 		}
 
-		return a * Math.pow(terrain.getRadius(), 2.0);
+		return a * Math.pow(radius, 2.0);
 	}
 
 	public double edgeLength(Edge e) {
-		return VectorUtil.distVec3(e.corners[0].v, e.corners[1].v) * terrain.getRadius();
+		return VectorUtil.distVec3(e.corners[0].v, e.corners[1].v) * radius;
 	}
 
 	public float[] defaultAxis() {
@@ -223,6 +237,7 @@ public class Planet {
 		if (size < 9) {
 			Planet planet = new Planet();
 
+			planet.radius = Parameters.default_radius;
 			planet.setGrid(Grid.build(size));
 			planet.setTerrain(Terrain.build(planet));
 			planet.setWater(Water.build(planet));

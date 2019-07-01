@@ -8,6 +8,8 @@ public abstract class Parameters {
 	public static final float EPSILON = 0.0001f;
 
 	// terrain parameters
+	public static float default_radius;
+
 	public static int grid_size;
 	public static float[] axis;
 	public String seed;
@@ -16,10 +18,12 @@ public abstract class Parameters {
 
 	// climate parameters
 	public static int seasons;
-	public static double axial_tilt;
+	public static float axial_tilt;
 	public static float error_tolerance;
 
 	static {
+		default_radius = 40000000;
+
 		// terrain
 		grid_size = 6;
 		axis = new float[] { 0, 0, 1 };
@@ -27,8 +31,8 @@ public abstract class Parameters {
 		water_ratio = 0.65;
 
 		// climate
-		seasons = 1;
-		axial_tilt = 0.4;
+		seasons = 6;
+		axial_tilt = 0.4f;
 		error_tolerance = 0.01f;
 	}
 
@@ -43,8 +47,8 @@ public abstract class Parameters {
 		water_ratio = 0.65;
 
 		// climate
-		seasons = 1;
-		axial_tilt = 0.4;
+		seasons = 6;
+		axial_tilt = 0.4f;
 		error_tolerance = 0.01f;
 	}
 
@@ -67,8 +71,8 @@ public abstract class Parameters {
 		//
 		seasons = Math.max(1, seasons);
 
-		axial_tilt = Math.max(0.0, axial_tilt);
-		axial_tilt = Math.min(Math.PI / 2, axial_tilt);
+		axial_tilt = (float) Math.max(0.0, axial_tilt);
+		axial_tilt = (float) Math.min(Math.PI / 2, axial_tilt);
 
 		error_tolerance = Math.max(0.001f, error_tolerance);
 		error_tolerance = Math.min(1.0f, error_tolerance);

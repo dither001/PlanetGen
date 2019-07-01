@@ -1,11 +1,15 @@
 package com.planet.hydrosphere;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.function.Supplier;
 
+import com.planet.lithosphere.Terrain;
+
 import controller.Parameters;
+import model.Corner;
+import model.Grid;
 import model.Planet;
-import model.Terrain;
 import model.Tile;
 
 public class Water {
@@ -116,26 +120,47 @@ public class Water {
 			while (waterTileSet.size() < waterTileTarget) {
 				seaLevel = (float) insertNextTile.get();
 
-				// while (unvisited.size() > 0 && elevationTiles[unvisited.iterator().next().id]
-				// < seaLevel)
 				while (unvisited.size() > 0 && terrain.getElevationOfTile(unvisited.iterator().next().id) < seaLevel)
 					insertNextTile.get();
 			}
 
-			// seaLevel = (seaLevel + elevationTiles[waterTileSet.iterator().next().id]) /
-			// 2;
 			if (waterTileSet.size() > 0)
 				seaLevel = (seaLevel + terrain.getElevationOfTile(waterTileSet.iterator().next().id)) / 2;
 
 			for (Tile el : waterTileSet) {
 				setSurfaceAtTile(el.id, seaLevel);
-				// el.water.surface = (float) seaLevel;
 				setDepthAtTile(el.id, seaLevel - terrain.getElevationOfTile(el.id));
-				// el.water.depth = (float) (seaLevel - elevationTiles[el.id]);
 			}
 		}
 
 		this.seaLevel = seaLevel;
+	}
+
+	private void setRiverDirections() {
+		HashSet<Corner> endpoints = new HashSet<Corner>();
+
+		for (Corner el : planet.getGrid().corners) {
+			if (planet.getTypeOfCorner(el.id).isCoast()) {
+				el.distanceToSea = 0;
+				endpoints.add(el);
+			}
+		}
+
+		while (endpoints.size() > 0) {
+			Iterator<Corner> it = endpoints.iterator();
+			Corner current = it.next();
+
+			for (Corner el : current.corners) {
+				if (planet.getTypeOfCorner(el.id).isLand() && el.riverDirection == -1) {
+					// XXX - I might need to swap current & el
+					el.riverDirection = Grid.position(current, el);
+					el.distanceToSea = 1 + current.distanceToSea;
+					endpoints.add(el);
+				}
+			}
+
+			endpoints.remove(current);
+		}
 	}
 
 	/*
