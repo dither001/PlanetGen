@@ -1,26 +1,30 @@
 package model;
 
 import java.awt.DisplayMode;
+import java.awt.Font;
+import java.nio.FloatBuffer;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.util.awt.TextRenderer;
 
 import controller.Matrix3;
 import controller.PlanetUtil;
-import controller.PlanetViewController;
+import controller.GlobeViewController;
+import graphics.Color;
 import graphics.JO;
 import graphics.PlanetColor;
 import view.GlobeView;
 
-public class GlobeModel implements GLEventListener {
+@SuppressWarnings("serial")
+public class GlobeModel extends GLCanvas implements GLEventListener {
 
 	int counter = 0;
 
@@ -53,7 +57,7 @@ public class GlobeModel implements GLEventListener {
 		resetRotation();
 		//
 		this.showRivers = false;
-		
+
 		//
 		this.scale = 1;
 		//
@@ -171,9 +175,38 @@ public class GlobeModel implements GLEventListener {
 			gl.glEnd();
 		};
 
+		Consumer<Tile> selectedTile = (t) -> {
+			JO.glColor3f(gl, Color.JET_BLACK);
+			gl.glLineWidth(3.0f);
+			for (Edge el : t.edges) {
+				gl.glBegin(GL2.GL_LINE_LOOP);
+				JO.glVertex3f(gl, el.corners[0].v);
+				JO.glVertex3f(gl, el.corners[1].v);
+				gl.glEnd();
+			}
+		};
+
+		BiConsumer<Integer, Integer> castRay = (mouseX, mouseY) -> {
+			// step 1
+			float x = (2.0f * mouseX) / width - 1.0f;
+			float y = 1.0f - (2.0f * mouseY) / height;
+			float z = 1.0f;
+
+			float[] ray_nds = new float[] { x, y, z };
+
+			// step 2?
+			Quaternion ray_clip = new Quaternion(x, y, -1.0f, 1.0f);
+
+			// vec4 ray_eye = inverse(projection_matrix) * ray_clip;
+			FloatBuffer proj = null;
+			// gl.glGetMatrixf(GLMatrixFunc.GL_PROJECTION, proj);
+			Quaternion ray_eye = ray_clip;
+
+		};
+
 		// CHOOSE VIEW COLORS
 		float[][] colors = null;
-		switch (PlanetViewController.getViewType()) {
+		switch (GlobeViewController.getViewType()) {
 		case ARIDITY:
 			colors = PlanetColor.aridColors;
 			break;
@@ -208,11 +241,31 @@ public class GlobeModel implements GLEventListener {
 		for (int i = 0; i < length; ++i) {
 			drawTile.accept(gTiles[i], colors[i]);
 		}
+		gl.glFlush();
+
+		int selected = GlobeViewController.getSelectedTile();
+		if (selected != -1 && selected < planet.tileSize())
+			selectedTile.accept(gTiles[selected]);
 
 		gl.glFlush();
 
 		// System.out.println("This ran.");
 		rquad -= 0.3f;
+
+
+		/*
+		 * 
+		 */
+		int x = 50, y = 50;
+
+		// timer label
+		TextRenderer tr = new TextRenderer(new Font("Verdana", Font.BOLD, 12));
+		tr.beginRendering(GlobeView.DEFAULT_WIDTH, GlobeView.DEFAULT_HEIGHT);
+		tr.setColor(java.awt.Color.YELLOW);
+		tr.setSmoothing(true);
+
+		tr.draw("Empty", x, y);
+		tr.endRendering();
 	}
 
 	@Override
@@ -242,56 +295,93 @@ public class GlobeModel implements GLEventListener {
 
 		if (height <= 0)
 			height = 1;
-		final float h = (float) width / (float) height;
+		final float ratio = 1.0f * width / height;
 
 		gl.glViewport(0, 0, width, height);
 		gl.glMatrixMode(GL2.GL_PROJECTION);
 		gl.glLoadIdentity();
-		glu.gluPerspective(45.0f, h, 1.0, 20.0);
+		glu.gluPerspective(45.0, ratio, 1.0, 20.0);
 		gl.glMatrixMode(GL2.GL_MODELVIEW);
 		gl.glLoadIdentity();
 	}
 
-	public void setScale(float[] vec2, double delta) {
-		double min_scale = 0.6 * Math.min(width, height) / GlobeView.DEFAULT_SIZE;
-		double max_scale = 20;
-		double new_scale = scale * delta;
+	/*
+	 * 
+	 */
+	public void rayCasting(int mouseX, int mouseY) {
 
-		new_scale = new_scale < scale ? scale < min_scale ? scale : Math.max(new_scale, min_scale) : new_scale;
+		// step 1
+		float x = (2.0f * mouseX) / width - 1.0f;
+		float y = 1.0f - (2.0f * mouseY) / height;
+		float z = 1.0f;
 
-		new_scale = Math.min(new_scale, max_scale);
+		float[] ray_nds = new float[] { x, y, z };
 
-		this.scale = new_scale;
+		// step 2?
+		Quaternion ray_clip = new Quaternion(x, y, -1.0f, 1.0f);
+
+		// vec4 ray_eye = inverse(projection_matrix) * ray_clip;
+		float[] proj = new float[16];
+		Quaternion ray_eye = ray_clip;
+
 	}
 
-	public void mouseDragged(float[] vec2) {
-		longitude -= 0.0035 * vec2[0] / scale;
+	private static void drawTimer() {
+		int x = 50, y = 50;
 
-		while (longitude > Math.PI)
-			longitude -= 2 * Math.PI;
-		while (longitude <= -Math.PI)
-			longitude += 2 * Math.PI;
+		// timer label
+		TextRenderer tr = new TextRenderer(new Font("Verdana", Font.BOLD, 12));
+		tr.beginRendering(GlobeView.DEFAULT_WIDTH, GlobeView.DEFAULT_HEIGHT);
+		tr.setColor(java.awt.Color.YELLOW);
+		tr.setSmoothing(true);
 
-		latitude -= 0.0035 * vec2[1] / scale;
+		tr.draw("Empty", x, y);
+		tr.endRendering();
 
-		latitude = Math.min(Math.PI / 2, latitude);
-		latitude = Math.max(-Math.PI / 2, latitude);
 	}
 
-	public float[] toCoordinates(float[] vec2) {
-		float[] v = new float[] { width, height };
-		v = VectorUtil.scaleVec2(v, v, 0.5f);
-		v = VectorUtil.subVec2(v, vec2, v);
-		v = VectorUtil.scaleVec2(v, v, (float) (2.0 / scale / GlobeView.DEFAULT_SIZE));
+	// public void setScale(float[] vec2, double delta) {
+	// double min_scale = 0.6 * Math.min(width, height) / GlobeView.DEFAULT_SIZE;
+	// double max_scale = 20;
+	// double new_scale = scale * delta;
+	//
+	// new_scale = new_scale < scale ? scale < min_scale ? scale :
+	// Math.max(new_scale, min_scale) : new_scale;
+	//
+	// new_scale = Math.min(new_scale, max_scale);
+	//
+	// this.scale = new_scale;
+	// }
 
-		double length = VectorUtil.normSquareVec2(v);
+	// public void mouseDragged(float[] vec2) {
+	// longitude -= 0.0035 * vec2[0] / scale;
+	//
+	// while (longitude > Math.PI)
+	// longitude -= 2 * Math.PI;
+	// while (longitude <= -Math.PI)
+	// longitude += 2 * Math.PI;
+	//
+	// latitude -= 0.0035 * vec2[1] / scale;
+	//
+	// latitude = Math.min(Math.PI / 2, latitude);
+	// latitude = Math.max(-Math.PI / 2, latitude);
+	// }
 
-		float[] vec3 = new float[] { 0, 0, 0 };
-		if (length > 1.0)
-			return vec3;
-
-		vec3 = new float[] { v[0], v[1], (float) Math.sqrt(1.0 - length) };
-		return PlanetUtil.rotateVec3(vec3, rotation().conjugate());
-	}
+	// public float[] toCoordinates(float[] vec2) {
+	// float[] v = new float[] { width, height };
+	// v = VectorUtil.scaleVec2(v, v, 0.5f);
+	// v = VectorUtil.subVec2(v, vec2, v);
+	// v = VectorUtil.scaleVec2(v, v, (float) (2.0 / scale /
+	// GlobeView.DEFAULT_SIZE));
+	//
+	// double length = VectorUtil.normSquareVec2(v);
+	//
+	// float[] vec3 = new float[] { 0, 0, 0 };
+	// if (length > 1.0)
+	// return vec3;
+	//
+	// vec3 = new float[] { v[0], v[1], (float) Math.sqrt(1.0 - length) };
+	// return PlanetUtil.rotateVec3(vec3, rotation().conjugate());
+	// }
 
 }

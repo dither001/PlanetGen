@@ -2,15 +2,16 @@ package graphics;
 
 import com.planet.atmosphere.Climate;
 import com.planet.atmosphere.Season;
+import com.planet.lithosphere.Plate;
 
-import controller.PlanetViewController;
+import controller.GlobeViewController;
 import model.Planet;
 import model.Tile;
 
 public abstract class PlanetColor {
 
 	public static float[][] tileColors;
-	
+
 	//
 	public static float[][] topoColors;
 	public static float[][] vegeColors;
@@ -44,7 +45,7 @@ public abstract class PlanetColor {
 	public static void updateColors(int season, Planet p) {
 		Season s = p.getClimate().getSeason(season);
 
-		switch (PlanetViewController.getViewType()) {
+		switch (GlobeViewController.getViewType()) {
 		case ARIDITY:
 			colorAridity(s, p);
 			break;
@@ -336,6 +337,8 @@ public abstract class PlanetColor {
 	 * REGION
 	 */
 	private static void colorRegions(Planet p) {
+		int[] plateIds = p.getTerrain().getTilePlateIds();
+
 		float[][] regions = new float[][] { //
 				Color.BLOOD_RED.rgb(), Color.DARK_RED.rgb(), Color.RED.rgb(), Color.DARK_RED.rgb(), //
 				Color.RUSSET.rgb(), Color.OCHRE.rgb(), Color.BRONZE.rgb(), //
@@ -353,10 +356,7 @@ public abstract class PlanetColor {
 		for (int i = 0; i < length; ++i) {
 			Tile current = gTiles[i];
 
-			if (current.region != -1)
-				regionColors[i] = regions[current.region];
-			else
-				regionColors[i] = new float[] { 1, 1, 1 };
+			regionColors[i] = regions[plateIds[i]];
 		}
 
 	}

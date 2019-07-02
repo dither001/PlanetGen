@@ -4,7 +4,7 @@ import com.jogamp.opengl.math.VectorUtil;
 
 public abstract class Parameters {
 
-	// misc parameters
+	// miscellaneous parameters
 	public static final float EPSILON = 0.0001f;
 
 	// terrain parameters
@@ -22,7 +22,9 @@ public abstract class Parameters {
 	public static float error_tolerance;
 
 	static {
-		default_radius = 40000000;
+		// default_radius = 40000000;
+		// default radius is that of earth
+		default_radius = 6371000; // meters
 
 		// terrain
 		grid_size = 6;

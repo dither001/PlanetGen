@@ -1,6 +1,10 @@
 package com.planet.lithosphere;
 
+import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import com.jogamp.opengl.math.VectorUtil;
 
@@ -28,6 +32,9 @@ public class Terrain {
 
 	float[] elevationCorners;
 	float[] elevationTiles;
+
+	private int[] tilePlateIds;
+	private Plate[] plates;
 
 	/*
 	 * CONSTRUCTORS
@@ -69,6 +76,22 @@ public class Terrain {
 
 	public float getElevationOfTile(int id) {
 		return getElevationTiles()[id];
+	}
+
+	public Plate[] getPlates() {
+		return plates;
+	}
+
+	public void setPlates(Plate[] plates) {
+		this.plates = plates;
+	}
+
+	public int[] getTilePlateIds() {
+		return tilePlateIds;
+	}
+
+	public void setTilePlateIds(int[] tilePlateIds) {
+		this.tilePlateIds = tilePlateIds;
 	}
 
 	public Tile lowestTile() {
@@ -159,6 +182,108 @@ public class Terrain {
 	}
 
 	/*
+	 * Randomly determine starting locations and sizes for tectonic plates.
+	 */
+	@SuppressWarnings("unchecked")
+	private void setupTectonicPlates(int numberOfPlates) {
+		Tile[] array = planet.getGrid().tiles;
+		this.setPlates(new Plate[numberOfPlates]);
+
+		// FIXME - testing only
+		System.out.println(numberOfPlates);
+
+		HashSet<Integer> visited = new HashSet<Integer>();
+		int size = planet.tileSize();
+		this.tilePlateIds = new int[size];
+
+		// random plate starting locations
+		while (visited.size() < numberOfPlates)
+			visited.add(Dice.nextInt(12, size));
+
+		// create Sets for plates
+		HashSet<Integer>[] plateSet = (HashSet<Integer>[]) new HashSet[numberOfPlates];
+		for (int i = 0; i < plateSet.length; ++i)
+			plateSet[i] = new HashSet<Integer>();
+
+		Integer[] start = visited.toArray(new Integer[numberOfPlates]);
+		// FIXME - testing only
+//		for (Integer el : start)
+//			System.out.println(el);
+
+		class Node {
+			int tileId;
+			int plateId;
+
+			Node(int tileId, int plateId) {
+				this.tileId = tileId;
+				this.plateId = plateId;
+			}
+		}
+		;
+
+		// setup queue, then clear for algorithm
+		ArrayDeque<Node> queue = new ArrayDeque<Node>(visited.size());
+		for (int i = 0; i < start.length; ++i) {
+			if (start[i] != null)
+				queue.add(new Node(start[i], i));
+		}
+
+		visited.clear();
+
+		/*
+		 * XXX - Function based on flood-fill
+		 */
+		Consumer<Node> nextTile = (node) -> {
+			if (node != null) {
+				if (visited.contains(node.tileId))
+					return;
+
+				visited.add(node.tileId);
+				plateSet[node.plateId].add(node.tileId);
+
+				for (Tile el : array[node.tileId].tiles) {
+					queue.add(new Node(el.id, node.plateId));
+				}
+
+			}
+		};
+
+		// main loop
+		while (queue.size() > 0) {
+			// iterate through plates
+			for (int i = 0; i < numberOfPlates; ++i) {
+				Node current = queue.poll();
+
+				if (current != null) {
+					if (Dice.roll(6) < 6)
+						nextTile.accept(current);
+					else
+						queue.add(current);					
+				}
+			}
+		}
+
+		// final step, turn the plateSets into new tectonic plates
+		for (int i = 0; i < numberOfPlates; ++i) {
+			int aSize = plateSet[i].size();
+			this.plates[i] = new Plate(plateSet[i].toArray(new Integer[aSize]));
+
+			for (Integer el : plateSet[i])
+				tilePlateIds[el] = i;
+		}
+
+		System.out.println("Total visited: " + visited.size());
+		int total = 0;
+		for (int i = 0; i < this.getPlates().length; ++i) {
+			int tmp = this.getPlates()[i].getTiles().length;
+			System.out.printf("Plate %d: %d %n", i, tmp);
+			total += tmp;
+		}
+		System.out.println("Total tiles: " + total);
+
+	}
+
+	/*
 	 * STATIC METHODS
 	 */
 	public static Terrain build(Planet planet) {
@@ -169,8 +294,8 @@ public class Terrain {
 
 		//
 		terrain.setupElevation();
+		terrain.setupTectonicPlates(Dice.roll(3, 4) + 4);
 
 		return terrain;
 	}
-
 }
