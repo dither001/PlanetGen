@@ -4,7 +4,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JMenu;
 
 import api.ViewType;
-import controller.GlobeViewController;
+import controller.ZGlobeViewController;
 
 public final class ViewsMenu extends JMenu {
 
@@ -56,7 +56,7 @@ public final class ViewsMenu extends JMenu {
 	 * PRIVATE METHODS
 	 */
 	private <F> void changeView(JRadioButton button, ViewType type) {
-		GlobeViewController.setViewType(type);
+		ZGlobeViewController.setViewType(type);
 
 		for (JRadioButton el : buttons)
 			el.setSelected(false);

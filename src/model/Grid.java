@@ -1,5 +1,7 @@
 package model;
 
+import com.jogamp.opengl.math.Ray;
+
 public class Grid {
 	private static final float X_POS = -0.525731112119133606f;
 	private static final float Z_POS = -0.850650808352039932f;
@@ -55,6 +57,14 @@ public class Grid {
 	/*
 	 * INSTANCE METHODS
 	 */
+	public boolean intersectSphere(Ray ray) {
+		
+		
+		
+		
+		return false;
+	}
+
 	private void addCorner(int index, int t1, int t2, int t3) {
 		addCorner(index, t1, t2, t3, false);
 	}
@@ -131,7 +141,10 @@ public class Grid {
 
 		return grid;
 	}
-
+	
+	/*
+	 * PRIVATE METHODS
+	 */
 	private static Grid buildHelper(int size) {
 		if (size == 0)
 			return sizeZeroGrid();

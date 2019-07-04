@@ -190,7 +190,7 @@ public class Terrain {
 		this.setPlates(new Plate[numberOfPlates]);
 
 		// FIXME - testing only
-		System.out.println(numberOfPlates);
+//		System.out.println(numberOfPlates);
 
 		HashSet<Integer> visited = new HashSet<Integer>();
 		int size = planet.tileSize();
@@ -272,14 +272,14 @@ public class Terrain {
 				tilePlateIds[el] = i;
 		}
 
-		System.out.println("Total visited: " + visited.size());
-		int total = 0;
-		for (int i = 0; i < this.getPlates().length; ++i) {
-			int tmp = this.getPlates()[i].getTiles().length;
-			System.out.printf("Plate %d: %d %n", i, tmp);
-			total += tmp;
-		}
-		System.out.println("Total tiles: " + total);
+//		System.out.println("Total visited: " + visited.size());
+//		int total = 0;
+//		for (int i = 0; i < this.getPlates().length; ++i) {
+//			int tmp = this.getPlates()[i].getTiles().length;
+//			System.out.printf("Plate %d: %d %n", i, tmp);
+//			total += tmp;
+//		}
+//		System.out.println("Total tiles: " + total);
 
 	}
 

@@ -12,11 +12,11 @@ import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.util.FPSAnimator;
 
 import graphics.PlanetColor;
-import model.GlobeModel;
+import model.ZGlobeModel;
 import model.Planet;
 
 @SuppressWarnings("serial")
-public class GlobeView extends NewtCanvasAWT {
+public class zGlobeView extends NewtCanvasAWT {
 	public static final double DEFAULT_SIZE = 480;
 
 	//
@@ -33,7 +33,7 @@ public class GlobeView extends NewtCanvasAWT {
 	/*
 	 * CONSTRUCTORS
 	 */
-	public GlobeView(GLCapabilities capabilities) {
+	public zGlobeView(GLCapabilities capabilities) {
 		this.window = GLWindow.create(capabilities);
 		
 		// event listener, adds GlobeView
@@ -65,22 +65,22 @@ public class GlobeView extends NewtCanvasAWT {
 	/*
 	 * PRIVATE METHODS
 	 */
-	private static GlobeModel createGlobeModel() {
+	private static ZGlobeModel createGlobeModel() {
 		// default array is UWP for earth [8,6,7,A,6,9]
 		int[] array = new int[] { 8, 6, 7, 10, 6, 9 };
 
 		return createGlobeModel(array, 6);
 	}
 
-	private static GlobeModel createGlobeModel(int[] uwp, int divisions) {
+	private static ZGlobeModel createGlobeModel(int[] uwp, int divisions) {
 		Planet p;
-		GlobeModel view = null;
+		ZGlobeModel view = null;
 
 		try {
 			p = Planet.build(divisions);
 			//
 			PlanetColor.setupColors(p);
-			view = new GlobeModel(p, p.rotationToDefault());
+			view = new ZGlobeModel(p, p.rotationToDefault());
 
 			// System.out.println(p.tileSize());
 		} catch (Exception e) {
@@ -98,8 +98,8 @@ public class GlobeView extends NewtCanvasAWT {
 			System.out.printf("Button: %d (%d, %d) %n", e.getButton(), e.getX(), e.getY());
 
 			// step 1
-			float x = (2.0f * e.getX()) / GlobeView.DEFAULT_WIDTH - 1.0f;
-			float y = 1.0f - (2.0f * e.getY()) / GlobeView.DEFAULT_HEIGHT;
+			float x = (2.0f * e.getX()) / zGlobeView.DEFAULT_WIDTH - 1.0f;
+			float y = 1.0f - (2.0f * e.getY()) / zGlobeView.DEFAULT_HEIGHT;
 			float z = 1.0f;
 
 			float[] ray_nds = new float[] { x, y, z };

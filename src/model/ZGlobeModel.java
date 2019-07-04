@@ -17,14 +17,14 @@ import com.jogamp.opengl.util.awt.TextRenderer;
 
 import controller.Matrix3;
 import controller.PlanetUtil;
-import controller.GlobeViewController;
+import controller.ZGlobeViewController;
 import graphics.Color;
 import graphics.JO;
 import graphics.PlanetColor;
-import view.GlobeView;
+import view.zGlobeView;
 
 @SuppressWarnings("serial")
-public class GlobeModel extends GLCanvas implements GLEventListener {
+public class ZGlobeModel extends GLCanvas implements GLEventListener {
 
 	int counter = 0;
 
@@ -50,7 +50,7 @@ public class GlobeModel extends GLCanvas implements GLEventListener {
 	/*
 	 * CONSTRUCTORS
 	 */
-	public GlobeModel(Planet planet, Quaternion q) {
+	public ZGlobeModel(Planet planet, Quaternion q) {
 		this.planet = planet;
 		this.q = q;
 
@@ -73,8 +73,8 @@ public class GlobeModel extends GLCanvas implements GLEventListener {
 		gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		gl.glLoadIdentity();
 
-		double x = width / GlobeView.DEFAULT_SIZE / scale;
-		double y = height / GlobeView.DEFAULT_SIZE / scale;
+		double x = width / zGlobeView.DEFAULT_SIZE / scale;
+		double y = height / zGlobeView.DEFAULT_SIZE / scale;
 		gl.glOrtho(-x, x, -y, y, -2.0, 0.0);
 	}
 
@@ -206,7 +206,7 @@ public class GlobeModel extends GLCanvas implements GLEventListener {
 
 		// CHOOSE VIEW COLORS
 		float[][] colors = null;
-		switch (GlobeViewController.getViewType()) {
+		switch (ZGlobeViewController.getViewType()) {
 		case ARIDITY:
 			colors = PlanetColor.aridColors;
 			break;
@@ -243,7 +243,7 @@ public class GlobeModel extends GLCanvas implements GLEventListener {
 		}
 		gl.glFlush();
 
-		int selected = GlobeViewController.getSelectedTile();
+		int selected = ZGlobeViewController.getSelectedTile();
 		if (selected != -1 && selected < planet.tileSize())
 			selectedTile.accept(gTiles[selected]);
 
@@ -252,20 +252,10 @@ public class GlobeModel extends GLCanvas implements GLEventListener {
 		// System.out.println("This ran.");
 		rquad -= 0.3f;
 
-
 		/*
 		 * 
 		 */
-		int x = 50, y = 50;
-
-		// timer label
-		TextRenderer tr = new TextRenderer(new Font("Verdana", Font.BOLD, 12));
-		tr.beginRendering(GlobeView.DEFAULT_WIDTH, GlobeView.DEFAULT_HEIGHT);
-		tr.setColor(java.awt.Color.YELLOW);
-		tr.setSmoothing(true);
-
-		tr.draw("Empty", x, y);
-		tr.endRendering();
+		drawTimer();
 	}
 
 	@Override
@@ -331,13 +321,41 @@ public class GlobeModel extends GLCanvas implements GLEventListener {
 
 		// timer label
 		TextRenderer tr = new TextRenderer(new Font("Verdana", Font.BOLD, 12));
-		tr.beginRendering(GlobeView.DEFAULT_WIDTH, GlobeView.DEFAULT_HEIGHT);
+		tr.beginRendering(zGlobeView.DEFAULT_WIDTH, zGlobeView.DEFAULT_HEIGHT);
 		tr.setColor(java.awt.Color.YELLOW);
 		tr.setSmoothing(true);
 
 		tr.draw("Empty", x, y);
 		tr.endRendering();
 
+	}
+
+	private static void drawAxes(GL2 gl) {
+		JO.glColor3f(gl, Color.WHITE);
+		gl.glLineWidth(3.0f);
+
+		float[][] a = new float[][] { { 1, 0, 0 }, { -1, 0, 0 } };
+//		float[][] a = new float[][] { { 0.9f, 0, 0 }, { -0.9f, 0, 0 } };
+
+		gl.glBegin(GL2.GL_LINE_LOOP);
+		JO.glVertex3f(gl, a[0]);
+		JO.glVertex3f(gl, a[1]);
+		gl.glEnd();
+
+		float[][] b = new float[][] { { 0, 1, 0 }, { 0, -1, 0 } };
+//		float[][] b = new float[][] { { 0, 0.9f, 0 }, { 0, -0.9f, 0 } };
+		gl.glBegin(GL2.GL_LINE_LOOP);
+		JO.glVertex3f(gl, b[0]);
+		JO.glVertex3f(gl, b[1]);
+		gl.glEnd();
+
+		float[][] c = new float[][] { { 0, 0, 1 }, { 0, 0, -1} };
+//		float[][] c = new float[][] { { 0, 0, 0.9f }, { 0, 0, -0.9f } };
+		gl.glBegin(GL2.GL_LINE_LOOP);
+		JO.glVertex3f(gl, c[0]);
+		JO.glVertex3f(gl, c[1]);
+		gl.glEnd();
+		
 	}
 
 	// public void setScale(float[] vec2, double delta) {

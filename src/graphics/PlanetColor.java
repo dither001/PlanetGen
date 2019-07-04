@@ -4,7 +4,7 @@ import com.planet.atmosphere.Climate;
 import com.planet.atmosphere.Season;
 import com.planet.lithosphere.Plate;
 
-import controller.GlobeViewController;
+import controller.ZGlobeViewController;
 import model.Planet;
 import model.Tile;
 
@@ -45,7 +45,7 @@ public abstract class PlanetColor {
 	public static void updateColors(int season, Planet p) {
 		Season s = p.getClimate().getSeason(season);
 
-		switch (GlobeViewController.getViewType()) {
+		switch (ZGlobeViewController.getViewType()) {
 		case ARIDITY:
 			colorAridity(s, p);
 			break;

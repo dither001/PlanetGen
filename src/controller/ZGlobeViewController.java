@@ -24,11 +24,12 @@ import com.jogamp.opengl.util.awt.TextRenderer;
 import api.ViewType;
 import graphics.PlanetColor;
 import menu.ViewsMenu;
-import model.GlobeModel;
+import model.ZGlobeModel;
 import model.Planet;
-import view.GlobeView;
+import model.Tile;
+import view.zGlobeView;
 
-public class GlobeViewController {
+public class ZGlobeViewController {
 
 	// CONSTANT
 	private static final int GRID_SIZE;
@@ -54,7 +55,7 @@ public class GlobeViewController {
 	 * MAIN METHOD
 	 */
 	private static void main1(String[] args) {
-		GlobeView view = new GlobeView(CAPABILITIES);
+		zGlobeView view = new zGlobeView(CAPABILITIES);
 
 		// frame
 		final JFrame frame = new JFrame("Random Planet");
@@ -149,7 +150,7 @@ public class GlobeViewController {
 	}
 
 	public static void setViewType(ViewType viewType) {
-		GlobeViewController.viewType = viewType;
+		ZGlobeViewController.viewType = viewType;
 	}
 
 	public static int getSelectedTile() {
@@ -157,28 +158,28 @@ public class GlobeViewController {
 	}
 
 	public static void setSelectedTile(int selectedTile) {
-		GlobeViewController.selectedTile = selectedTile;
+		ZGlobeViewController.selectedTile = selectedTile;
 	}
 
 	/*
 	 * PRIVATE METHODS
 	 */
-	private static GlobeModel createGlobeModel() {
+	private static ZGlobeModel createGlobeModel() {
 		// default array is UWP for earth [8,6,7,A,6,9]
 		int[] array = new int[] { 8, 6, 7, 10, 6, 9 };
 
 		return createGlobeModel(array);
 	}
 
-	private static GlobeModel createGlobeModel(int[] uwp) {
-		Planet p;
-		GlobeModel view = null;
+	private static ZGlobeModel createGlobeModel(int[] uwp) {
+		Planet p = null;
+		ZGlobeModel view = null;
 
 		try {
 			p = Planet.build(GRID_SIZE);
 			//
 			PlanetColor.setupColors(p);
-			view = new GlobeModel(p, p.rotationToDefault());
+			view = new ZGlobeModel(p, p.rotationToDefault());
 
 			// System.out.println(p.tileSize());
 		} catch (Exception e) {
@@ -196,8 +197,8 @@ public class GlobeViewController {
 			System.out.printf("Button: %d (%d, %d) %n", e.getButton(), e.getX(), e.getY());
 
 			// step 1
-			float x = (2.0f * e.getX()) / GlobeView.DEFAULT_WIDTH - 1.0f;
-			float y = 1.0f - (2.0f * e.getY()) / GlobeView.DEFAULT_HEIGHT;
+			float x = (2.0f * e.getX()) / zGlobeView.DEFAULT_WIDTH - 1.0f;
+			float y = 1.0f - (2.0f * e.getY()) / zGlobeView.DEFAULT_HEIGHT;
 			float z = 1.0f;
 
 			float[] ray_nds = new float[] { x, y, z };
