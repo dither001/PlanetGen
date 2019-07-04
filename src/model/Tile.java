@@ -1,6 +1,11 @@
 package model;
 
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.VectorUtil;
+
+import controller.Parameters;
+import controller.Plane;
 
 public class Tile {
 	public int id;
@@ -35,36 +40,40 @@ public class Tile {
 	}
 
 	/*
+	 * Method adapted from original JavaScript code written for
+	 * "Procedural Planet Generation" by Andy Gainey
 	 * 
+	 * https://experilous.com/1/blog/post/procedural-planet-generation
 	 */
-	public boolean intersects(Ray ray) {
-//		if (!intersectRayWithSphere(ray, this.boundingSphere)) 
-//			return false;
+	public boolean intersects(Ray r, Grid g) {
+		if (true != g.intersectSphere(r))
+			return false;
 
-//		var surface = new THREE.Plane().setFromNormalAndCoplanarPoint(this.normal, this.averagePosition);
-//		if (surface.distanceToPoint(ray.origin) <= 0) return false;
+		Plane surface = Plane.setFromNormalAndCoplanarPoint(VectorUtil.normalizeVec3(new float[3], v), v);
+		if (surface.distanceToPoint(r.orig) < 0)
+			return false;
 
-//		var denominator = surface.normal.dot(ray.direction);
-//		if (denominator === 0) return false;
+		float denom = VectorUtil.dotVec3(surface.normal, r.dir);
+		if (FloatUtil.isZero(denom, Parameters.EPSILON))
+			return false;
 
-//		var t = -(ray.origin.dot(surface.normal) + surface.constant) / denominator;
-//		var point = ray.direction.clone().multiplyScalar(t).add(ray.origin);
-		
-//		var origin = new Vector3(0, 0, 0);
-//		for (var i = 0; i < this.corners.length; ++i) {
-//			var j = (i + 1) % this.corners.length;
-//			var side = new THREE.Plane().setFromCoplanarPoints(this.corners[j].position, this.corners[i].position, origin);
+		float t = -(VectorUtil.dotVec3(r.orig, surface.normal) + surface.k) / denom;
+		float[] point = VectorUtil.copyVec3(new float[3], 0, r.dir, 0);
+		point = VectorUtil.scaleVec3(point, point, t);
+		point = VectorUtil.addVec3(point, point, r.orig);
 
-//			if (side.distanceToPoint(point) < 0)
-//				return false;
-//		}
-		
-//		return true;
-		
-		
-		return false;
+		float[] origin = new float[] { 0, 0, 0 };
+		for (int i = 0; i < corners.length; ++i) {
+			int j = (i + 1) % corners.length;
+			Plane side = Plane.setFromCoplanarPoints(corners[j].v, corners[i].v, origin);
+
+			if (side.distanceToPoint(point) < 0)
+				return false;
+		}
+
+		return true;
 	}
-	
+
 	public double north(Planet p) {
 		return p.north(this);
 	}

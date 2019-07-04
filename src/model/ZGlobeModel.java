@@ -296,6 +296,28 @@ public class ZGlobeModel extends GLCanvas implements GLEventListener {
 	}
 
 	/*
+	 * Method adapted from original JavaScript code written for
+	 * "Procedural Planet Generation" by Andy Gainey
+	 * 
+	 * https://experilous.com/1/blog/post/procedural-planet-generation
+	 */
+//	function clickHandler(event)
+//	{
+//		if (planet)
+//		{
+//			var x = event.pageX / renderer.domElement.width * 2 - 1;
+//			var y = 1 - event.pageY / renderer.domElement.height * 2;
+//			var rayCaster = projector.pickingRay(new Vector3(x, y, 0), camera);
+//			var intersection = planet.partition.intersectRay(rayCaster.ray);
+//			if (intersection !== false)
+//				selectTile(intersection);
+//			else
+//				deselectTile();
+//		}
+//	}
+	
+	
+	/*
 	 * 
 	 */
 	public void rayCasting(int mouseX, int mouseY) {

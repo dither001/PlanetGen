@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.jogamp.opengl.math.VectorUtil;
+
 public abstract class Misc {
 
 	/*
@@ -196,6 +198,18 @@ public abstract class Misc {
 		}
 
 		return n - added;
+	}
+
+	/*
+	 * V - VECTOR METHODS
+	 */
+	public static float[] projectVector3(float[] a, float[] b) {
+		float[] result = new float[3];
+
+		float scalar = VectorUtil.dotVec3(a, b) / VectorUtil.dotVec3(a, a);
+		VectorUtil.scaleVec3(result, a, scalar);
+
+		return result;
 	}
 
 }

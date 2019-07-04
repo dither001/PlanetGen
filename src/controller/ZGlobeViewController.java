@@ -185,6 +185,11 @@ public class ZGlobeViewController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+//		if (null != p) {
+//			for (Tile el : p.getGrid().tiles)
+//				System.out.printf("tile: %d (x: %f, y: %f, z: %f) %n", el.id, el.v[0], el.v[1], el.v[2]);
+//		}
 
 		return view;
 	}
