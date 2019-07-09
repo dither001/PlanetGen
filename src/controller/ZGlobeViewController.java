@@ -38,6 +38,7 @@ public class ZGlobeViewController {
 
 	private static ViewType viewType;
 	private static int selectedTile;
+	private static zGlobeView view;
 
 	static {
 		/*
@@ -50,12 +51,12 @@ public class ZGlobeViewController {
 		setViewType(ViewType.ELEVATION);
 		setSelectedTile(16);
 	}
-
+	
 	/*
 	 * MAIN METHOD
 	 */
 	private static void main1(String[] args) {
-		zGlobeView view = new zGlobeView(CAPABILITIES);
+		view = new zGlobeView(CAPABILITIES);
 
 		// frame
 		final JFrame frame = new JFrame("Random Planet");
@@ -82,6 +83,8 @@ public class ZGlobeViewController {
 		frame.setSize(d);
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// XXX - I haven't used this "request foxu" thing before.
+		frame.requestFocusInWindow();
 		frame.setVisible(true);
 	}
 
@@ -185,11 +188,12 @@ public class ZGlobeViewController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-//		if (null != p) {
-//			for (Tile el : p.getGrid().tiles)
-//				System.out.printf("tile: %d (x: %f, y: %f, z: %f) %n", el.id, el.v[0], el.v[1], el.v[2]);
-//		}
+
+		// if (null != p) {
+		// for (Tile el : p.getGrid().tiles)
+		// System.out.printf("tile: %d (x: %f, y: %f, z: %f) %n", el.id, el.v[0],
+		// el.v[1], el.v[2]);
+		// }
 
 		return view;
 	}
@@ -199,20 +203,16 @@ public class ZGlobeViewController {
 	 */
 	private static class GlobeMouse extends TraceMouseAdapter {
 		public void mouseClicked(MouseEvent e) {
-			System.out.printf("Button: %d (%d, %d) %n", e.getButton(), e.getX(), e.getY());
+//			System.out.printf("Button: %d (%d, %d) %n", e.getButton(), e.getX(), e.getY());
 
 			// step 1
-			float x = (2.0f * e.getX()) / zGlobeView.DEFAULT_WIDTH - 1.0f;
-			float y = 1.0f - (2.0f * e.getY()) / zGlobeView.DEFAULT_HEIGHT;
-			float z = 1.0f;
-
-			float[] ray_nds = new float[] { x, y, z };
-
-			// step 2?
-			Quaternion ray_clip = new Quaternion(x, y, -1.0f, 1.0f);
-
-			// step 3?
-			// Quaternion ray_eye = new PMVMatrix();
+//			float x = (2.0f * e.getX()) / zGlobeView.DEFAULT_WIDTH - 1.0f;
+//			float y = 1.0f - (2.0f * e.getY()) / zGlobeView.DEFAULT_HEIGHT;
+//			float z = 1.0f;
+//
+//			System.out.printf("Ray coordinates: (%f, %f, %f) %n", x, y, z);
+//			view.canvas.display();
+			
 		}
 
 		public void mouseDragged(MouseEvent e) {

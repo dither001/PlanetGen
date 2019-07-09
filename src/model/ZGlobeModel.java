@@ -132,7 +132,7 @@ public class ZGlobeModel extends GLCanvas implements GLEventListener {
 
 		gl.glRotatef(-90.0f, 0.95f, 0.1f, -0.1f); // rotate up
 		gl.glRotatef(rquad, 0, 0, 1.0f); // spin
-		Matrix3 m = new Matrix3(q.mult(rotation()));
+		Matrix3 matrix3 = new Matrix3(q.mult(rotation()));
 
 		/*
 		 * XXX - I wrote this anonymous ("lambda?") expression as a way to avoid passing
@@ -142,11 +142,11 @@ public class ZGlobeModel extends GLCanvas implements GLEventListener {
 			gl.glBegin(GL2.GL_TRIANGLE_FAN);
 
 			JO.glColor3f(gl, color);
-			JO.glVertex3f(gl, m.multVec3(t.v));
+			JO.glVertex3f(gl, matrix3.multVec3(t.v));
 			for (Corner el : t.corners)
-				JO.glVertex3f(gl, m.multVec3(el.v));
+				JO.glVertex3f(gl, matrix3.multVec3(el.v));
 
-			JO.glVertex3f(gl, m.multVec3(t.corners[0].v));
+			JO.glVertex3f(gl, matrix3.multVec3(t.corners[0].v));
 
 			gl.glEnd();
 		};
@@ -187,20 +187,14 @@ public class ZGlobeModel extends GLCanvas implements GLEventListener {
 		};
 
 		BiConsumer<Integer, Integer> castRay = (mouseX, mouseY) -> {
-			// step 1
-			float x = (2.0f * mouseX) / width - 1.0f;
-			float y = 1.0f - (2.0f * mouseY) / height;
-			float z = 1.0f;
-
-			float[] ray_nds = new float[] { x, y, z };
-
-			// step 2?
-			Quaternion ray_clip = new Quaternion(x, y, -1.0f, 1.0f);
-
-			// vec4 ray_eye = inverse(projection_matrix) * ray_clip;
-			FloatBuffer proj = null;
-			// gl.glGetMatrixf(GLMatrixFunc.GL_PROJECTION, proj);
-			Quaternion ray_eye = ray_clip;
+			int viewPort[] = new int[4];
+			float[] mvmatrix = new float[16];
+			float[] pmatrix = new float[16];
+			int realy = 0;
+			float[] wcoord = new float[4];
+			
+			
+			
 
 		};
 
@@ -295,12 +289,7 @@ public class ZGlobeModel extends GLCanvas implements GLEventListener {
 		gl.glLoadIdentity();
 	}
 
-	/*
-	 * Method adapted from original JavaScript code written for
-	 * "Procedural Planet Generation" by Andy Gainey
-	 * 
-	 * https://experilous.com/1/blog/post/procedural-planet-generation
-	 */
+	
 //	function clickHandler(event)
 //	{
 //		if (planet)
@@ -320,7 +309,7 @@ public class ZGlobeModel extends GLCanvas implements GLEventListener {
 	/*
 	 * 
 	 */
-	public void rayCasting(int mouseX, int mouseY) {
+	public void rayCasting1(int mouseX, int mouseY) {
 
 		// step 1
 		float x = (2.0f * mouseX) / width - 1.0f;

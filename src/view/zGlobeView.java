@@ -7,6 +7,7 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.TraceMouseAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.awt.GLCanvas;
 //import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.util.FPSAnimator;
@@ -29,6 +30,7 @@ public class zGlobeView extends NewtCanvasAWT {
 	}
 
 	GLWindow window;
+	public ZGlobeModel canvas;
 
 	/*
 	 * CONSTRUCTORS
@@ -37,7 +39,8 @@ public class zGlobeView extends NewtCanvasAWT {
 		this.window = GLWindow.create(capabilities);
 		
 		// event listener, adds GlobeView
-		window.addGLEventListener(createGlobeModel());
+		this.canvas = createGlobeModel();
+		window.addGLEventListener(canvas);
 		window.setSize(480, 480);
 
 		// starts animator, causing globe to rotate

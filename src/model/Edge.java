@@ -4,7 +4,7 @@ public class Edge {
 	public int id;
 
 	public Tile[] tiles;
-	Corner[] corners;
+	public Corner[] corners;
 
 	// terrain fields
 	// public LandType type;

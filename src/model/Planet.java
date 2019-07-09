@@ -101,10 +101,14 @@ public class Planet {
 		return cornerTypes[id];
 	}
 
-	// public LandType getTypeOfEdge(int id) {
-	// return terrainEdges[id];
-	// }
-	//
+	public boolean edgeIsWater(int id) {
+		return getTypeOfEdge(id).isWater();
+	}
+
+	public LandType getTypeOfEdge(int id) {
+		return edgeTypes[id];
+	}
+
 	// public LandType getTypeOfTile(int id) {
 	// return terrainTiles[id];
 	// }

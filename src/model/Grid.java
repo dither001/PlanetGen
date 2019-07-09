@@ -4,6 +4,8 @@ import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.VectorUtil;
 
 import controller.Misc;
+import controller.PlanetViewController;
+//import controller.Ray;
 
 public class Grid {
 	private static final float X_POS = -0.525731112119133606f;
@@ -68,14 +70,14 @@ public class Grid {
 	 * https://experilous.com/1/blog/post/procedural-planet-generation
 	 */
 	public boolean intersectSphere(Ray ray) {
-		float[] v1 = new float[3];
-		VectorUtil.subVec3(v1, VectorUtil.VEC3_ZERO, ray.orig);
+		float[] v1 = VectorUtil.subVec3(new float[3], VectorUtil.VEC3_ZERO, ray.orig);
 		float[] v2 = Misc.projectVector3(v1, ray.dir);
 
-		System.out.println(VectorUtil.distVec3(v1, v2));
-		System.out.println(VectorUtil.distSquareVec3(v1, v2));
+		boolean intersect = VectorUtil.distSquareVec3(v1, v2) < PlanetViewController.MOUSE_THRESHOLD;
+		// if (intersect)
+		// System.out.println("intersect == true");
 
-		return VectorUtil.distVec3(v1, v2) < 1;
+		return intersect;
 	}
 
 	private void addCorner(int index, int t1, int t2, int t3) {
@@ -143,6 +145,11 @@ public class Grid {
 		// System.out.println(lowest);
 	}
 
+	private void setupBoundingSpheres() {
+		for (Tile el : tiles)
+			el.setupBoundingSphere();
+	}
+
 	/*
 	 * STATIC METHODS
 	 */
@@ -151,6 +158,7 @@ public class Grid {
 
 		//
 		grid.setupLatitude();
+		grid.setupBoundingSpheres();
 
 		return grid;
 	}
