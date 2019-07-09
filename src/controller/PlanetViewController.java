@@ -21,7 +21,6 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.glu.GLUquadric;
 import com.jogamp.opengl.math.FloatUtil;
@@ -276,12 +275,12 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		JO.glColor3f(gl, Color.JET_BLACK);
 		gl.glLineWidth(1.0f);
 		for (int i = 0; i < length; ++i) {
-			if (true != planet.edgeIsWater(i)) {
-				gl.glBegin(GL.GL_LINES);
-				JO.glVertex3f(gl, edges[i].corners[0].v);
-				JO.glVertex3f(gl, edges[i].corners[1].v);
-				gl.glEnd();
-			}
+			// if (planet.edgeIsCoast(i) || planet.edgeIsLand(i)) {
+			gl.glBegin(GL.GL_LINES);
+			JO.glVertex3f(gl, edges[i].corners[0].v);
+			JO.glVertex3f(gl, edges[i].corners[1].v);
+			gl.glEnd();
+			// }
 		}
 
 	}
@@ -361,21 +360,32 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 				// System.out.printf("wcoord: (%.2f, %.2f, %.2f) %n", wcoord[0], wcoord[1],
 				// wcoord[2]);
 
-				// float[] mousePoint = FloatUtil.multMatrixVec(new float[4], mv_matrix,
-				// new float[] { mouseX, mouseY, 1, 1 });
-				// mousePoint = FloatUtil.multMatrixVec(mousePoint, p_matrix, mousePoint);
-
 				//
 				ray = new Ray();
-				//
-				// System.out.printf("(%f, %f)%n", x, y);
-				// FloatUtil.mapWinToRay(mousePoint[0], mousePoint[1], 0, 1, mv_matrix, 0,
-				// p_matrix, 0, viewport, 0, ray, new float[16],
-				// new float[16], new float[4]);
 
-				// XXX - The last version to "work"
+				/*
+				 * XXX - Second "functioning" version of the ray-picker; this one is supposed to
+				 * set the mouse coordinates according to the viewport but I can't verify that
+				 * it does so correctly. It appears to "rotate off the edge" and becomes unable
+				 * to pick anything until the rotation comes 'round again.
+				 */
+				float[] mousePoint = new float[] { mouseX, mouseY, 1.0f };
+
+				// mousePoint = VectorUtil.mulRowMat4Vec3(new float[3], mv_matrix, mousePoint);
+				// mousePoint = VectorUtil.mulRowMat4Vec3(new float[3], p_matrix, mousePoint);
+				// FloatUtil.mapWinToRay(mousePoint[0], mousePoint[1], 0, 1, mv_matrix, 0,
+				// p_matrix, 0, viewport, 0, ray,
+				// new float[16], new float[16], new float[4]);
+
+				/*
+				 * XXX - First "functioning" version of the ray-picker; ray appears to shoot
+				 * from the wrong angle and intersects multiple spheres. May need to change from
+				 * sphere to BoundingBox or perhaps the plane intersection method.
+				 */
 				FloatUtil.mapWinToRay(mouseX, mouseY, 0, 1, mv_matrix, 0, p_matrix, 0, viewport, 0, ray, new float[16],
 						new float[16], new float[4]);
+
+				System.out.printf("ray origin (%.2f, %.2f, %.2f) %n", ray.orig[0], ray.orig[1], ray.orig[2]);
 
 				PlanetViewController.A_COUNT = 0;
 				PlanetViewController.B_COUNT = 0;
@@ -389,12 +399,12 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 					}
 				}
 
-				// System.out.println(selection.size());
+				System.out.println("Number of tiles selected: " + selection.size());
 
 				// for (Object el : selection.toArray())
 				// System.out.print(el.toString() + ", ");
 
-				System.out.println();
+				// System.out.println();
 				// System.out.printf("A: %d | B: %d | C: %d | D: %d %n", A_COUNT, B_COUNT,
 				// C_COUNT, D_COUNT);
 

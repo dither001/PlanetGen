@@ -101,8 +101,12 @@ public class Planet {
 		return cornerTypes[id];
 	}
 
-	public boolean edgeIsWater(int id) {
-		return getTypeOfEdge(id).isWater();
+	public boolean edgeIsCoast(int id) {
+		return getTypeOfEdge(id).isCoast();
+	}
+
+	public boolean edgeIsLand(int id) {
+		return getTypeOfEdge(id).isLand();
 	}
 
 	public LandType getTypeOfEdge(int id) {

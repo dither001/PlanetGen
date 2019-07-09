@@ -53,13 +53,13 @@ public class Tile {
 		if (true != g.intersectSphere(r))
 			return false;
 
-		// System.out.println("A");
+//		 System.out.println("A");
 		++PlanetViewController.A_COUNT;
 		if (true != bounds.hit(r, -2, 2))
 			return false;
 
-		// System.out.println("B");
-//		++PlanetViewController.B_COUNT;
+//		 System.out.println("B");
+		++PlanetViewController.B_COUNT;
 //		Plane surface = Plane.setFromNormalAndCoplanarPoint(VectorUtil.normalizeVec3(new float[3], v), v);
 //		if (surface.distanceToPoint(r.orig) < 0)
 //			return false;
@@ -68,8 +68,8 @@ public class Tile {
 //		if (FloatUtil.isZero(denom, Parameters.EPSILON))
 //			return false;
 
-		// System.out.println("C");
-//		++PlanetViewController.C_COUNT;
+//		 System.out.println("C");
+		++PlanetViewController.C_COUNT;
 //		float t = -(VectorUtil.dotVec3(r.orig, surface.normal) + surface.k) / denom;
 //		float[] point = VectorUtil.copyVec3(new float[3], 0, r.dir, 0);
 //		point = VectorUtil.scaleVec3(point, point, t);
