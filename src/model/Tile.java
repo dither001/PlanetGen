@@ -53,39 +53,31 @@ public class Tile {
 		if (true != g.intersectSphere(r))
 			return false;
 
-//		 System.out.println("A");
-		++PlanetViewController.A_COUNT;
 		if (true != bounds.hit(r, -2, 2))
 			return false;
 
-//		 System.out.println("B");
-		++PlanetViewController.B_COUNT;
-//		Plane surface = Plane.setFromNormalAndCoplanarPoint(VectorUtil.normalizeVec3(new float[3], v), v);
-//		if (surface.distanceToPoint(r.orig) < 0)
-//			return false;
+		Plane surface = Plane.setFromNormalAndCoplanarPoint(VectorUtil.normalizeVec3(new float[3], v), v);
+		if (surface.distanceToPoint(r.orig) < 0)
+			return false;
 
-//		float denom = VectorUtil.dotVec3(surface.normal, r.dir);
-//		if (FloatUtil.isZero(denom, Parameters.EPSILON))
-//			return false;
+		// float denom = VectorUtil.dotVec3(surface.normal, r.dir);
+		// if (FloatUtil.isZero(denom, Parameters.EPSILON))
+		// return false;
 
-//		 System.out.println("C");
-		++PlanetViewController.C_COUNT;
-//		float t = -(VectorUtil.dotVec3(r.orig, surface.normal) + surface.k) / denom;
-//		float[] point = VectorUtil.copyVec3(new float[3], 0, r.dir, 0);
-//		point = VectorUtil.scaleVec3(point, point, t);
-//		point = VectorUtil.addVec3(point, point, r.orig);
-//
-//		float[] origin = new float[3];
-//		for (int i = 0; i < corners.length; ++i) {
-//			int j = (i + 1) % corners.length;
-//			Plane side = Plane.setFromCoplanarPoints(corners[j].v, corners[i].v, origin);
-//
-//			if (side.distanceToPoint(point) < 0)
-//				return false;
-//		}
+		// float t = -(VectorUtil.dotVec3(r.orig, surface.normal) + surface.k) / denom;
+		// float[] point = VectorUtil.copyVec3(new float[3], 0, r.dir, 0);
+		// point = VectorUtil.scaleVec3(point, point, t);
+		// point = VectorUtil.addVec3(point, point, r.orig);
+		//
+		// float[] origin = new float[3];
+		// for (int i = 0; i < corners.length; ++i) {
+		// int j = (i + 1) % corners.length;
+		// Plane side = Plane.setFromCoplanarPoints(corners[j].v, corners[i].v, origin);
+		//
+		// if (side.distanceToPoint(point) < 0)
+		// return false;
+		// }
 
-//		++PlanetViewController.D_COUNT;
-//		System.out.println("D");
 		return true;
 	}
 

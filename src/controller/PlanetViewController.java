@@ -2,8 +2,13 @@ package controller;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -22,11 +27,9 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
-import com.jogamp.opengl.glu.GLUquadric;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
-import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.util.FPSAnimator;
 
 import api.ViewType;
@@ -49,8 +52,10 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 	public static int D_COUNT;
 
 	/*
-	 * STATIC METHODS
+	 * STATIC FIELDS
 	 */
+	private static ExecutorService executor;
+
 	private static GLU glu;
 	private static JFrame frame;
 	private static JMenuBar menuBar;
@@ -87,6 +92,9 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 	private static Ray ray;
 
 	static {
+		executor = Executors.newCachedThreadPool();
+
+		//
 		FRAME_HEIGHT = 480;
 		FRAME_WIDTH = 480;
 
@@ -96,9 +104,9 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 
 		planet = null;
 		defaultRotation = null;
-		rquad = 0.0f;
 
 		//
+		rquad = 0.0f;
 		scale = 1;
 		view_height = 640;
 		view_width = 640;
@@ -206,7 +214,6 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		//
 		// gl.glViewport(0, 0, view_width, view_height);
 		// gl.glMatrixMode(GL2.GL_PROJECTION);
-		// gl.glMatrixMode(GL2.GL_PROJECTION);
 		// gl.glLoadIdentity();
 		//
 		// glu.gluPerspective(45.0, aspect_ratio, 1.0, 100.0);
@@ -283,10 +290,12 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 			// }
 		}
 
+		rquad -= 0.3f;
+		gl.glFlush();
 	}
 
 	/*
-	 * GLEVENT LISTENER
+	 * DISPLAY METHOD
 	 * 
 	 */
 	@Override
@@ -302,119 +311,35 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		gl.glRotatef(rquad, 0, 0, 1.0f); // spin
 
 		/*
-		 * RAY PICKING
-		 */
-		Consumer<Boolean> pickRay = (flag) -> {
-			if (flag) {
-				PlanetViewController.picking = false;
-
-				// step 1
-				int[] viewport = new int[4];
-				gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
-
-				// float x = (2.0f * mouseX) / view_width - 1.0f;
-				// float y = 1.0f - (2.0f * mouseY) / view_height;
-				float x = (2.0f * mouseX) / viewport[2] - 1.0f;
-				float y = 1.0f - (2.0f * mouseY) / viewport[3];
-				float z = 1.0f;
-
-				float[] ray_nds = new float[] { x, y, z };
-
-				// step 2
-				float[] ray_clip = new float[] { x, y, -1.0f, 1.0f };
-
-				// step 3
-				float[] p_matrix = new float[16];
-				gl.glGetFloatv(GL2.GL_PROJECTION_MATRIX, p_matrix, 0);
-
-				float[] inverse = FloatUtil.invertMatrix(p_matrix, new float[16]);
-				float[] ray_eye = FloatUtil.multMatrixVec(inverse, ray_clip, new float[4]);
-				ray_eye = new float[] { ray_eye[0], ray_eye[1], -1.0f, 0.0f };
-
-				// step 4
-				float[] mv_matrix = new float[16];
-				gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, mv_matrix, 0);
-				inverse = FloatUtil.invertMatrix(mv_matrix, inverse);
-
-				float[] ray_wor = FloatUtil.multMatrixVec(inverse, ray_eye, new float[4]);
-				ray_wor = new float[] { ray_wor[0], ray_wor[1], ray_wor[2] };
-				VectorUtil.normalizeVec3(ray_wor);
-
-				// System.out.printf("ray_wor: (%f, %f, %f)%n", ray_wor[0], ray_wor[1],
-				// ray_wor[2]);
-
-				/*
-				 * 
-				 */
-
-				// System.out.printf("[%d, %d, %d, %d]%n", viewport[0], viewport[1],
-				// viewport[2], viewport[3]);
-
-				// float realy = 0;
-				// float[] wcoord = new float[4];
-
-				// realy = viewport[3] - mouseY - 1;
-
-				// glu.gluUnProject(mouseX, mouseY, 0, mv_matrix, 0, p_matrix, 0, viewport, 0,
-				// wcoord, 0);
-				// System.out.printf("wcoord: (%.2f, %.2f, %.2f) %n", wcoord[0], wcoord[1],
-				// wcoord[2]);
-
-				//
-				ray = new Ray();
-
-				/*
-				 * XXX - Second "functioning" version of the ray-picker; this one is supposed to
-				 * set the mouse coordinates according to the viewport but I can't verify that
-				 * it does so correctly. It appears to "rotate off the edge" and becomes unable
-				 * to pick anything until the rotation comes 'round again.
-				 */
-				float[] mousePoint = new float[] { mouseX, mouseY, 1.0f };
-
-				// mousePoint = VectorUtil.mulRowMat4Vec3(new float[3], mv_matrix, mousePoint);
-				// mousePoint = VectorUtil.mulRowMat4Vec3(new float[3], p_matrix, mousePoint);
-				// FloatUtil.mapWinToRay(mousePoint[0], mousePoint[1], 0, 1, mv_matrix, 0,
-				// p_matrix, 0, viewport, 0, ray,
-				// new float[16], new float[16], new float[4]);
-
-				/*
-				 * XXX - First "functioning" version of the ray-picker; ray appears to shoot
-				 * from the wrong angle and intersects multiple spheres. May need to change from
-				 * sphere to BoundingBox or perhaps the plane intersection method.
-				 */
-				FloatUtil.mapWinToRay(mouseX, mouseY, 0, 1, mv_matrix, 0, p_matrix, 0, viewport, 0, ray, new float[16],
-						new float[16], new float[4]);
-
-				System.out.printf("ray origin (%.2f, %.2f, %.2f) %n", ray.orig[0], ray.orig[1], ray.orig[2]);
-
-				PlanetViewController.A_COUNT = 0;
-				PlanetViewController.B_COUNT = 0;
-				PlanetViewController.C_COUNT = 0;
-				PlanetViewController.D_COUNT = 0;
-
-				selection.clear();
-				for (Tile el : grid) {
-					if (el.intersects(ray, planet.getGrid())) {
-						selection.add(el.id);
-					}
-				}
-
-				System.out.println("Number of tiles selected: " + selection.size());
-
-				// for (Object el : selection.toArray())
-				// System.out.print(el.toString() + ", ");
-
-				// System.out.println();
-				// System.out.printf("A: %d | B: %d | C: %d | D: %d %n", A_COUNT, B_COUNT,
-				// C_COUNT, D_COUNT);
-
-			}
-		};
-
-		/*
 		 * DRAW GLOBE
 		 */
 		drawGlobe(gl, planet.getGrid());
+
+		/*
+		 * RAY PICKING
+		 */
+		Supplier<Integer> pickRay = () -> {
+			// step 1
+			int[] viewport = new int[4];
+			gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
+
+			float[] p_matrix = new float[16];
+			gl.glGetFloatv(GL2.GL_PROJECTION_MATRIX, p_matrix, 0);
+
+			float[] mv_matrix = new float[16];
+			gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, mv_matrix, 0);
+
+			ray = new Ray();
+			FloatUtil.mapWinToRay(mouseX, mouseY, 0.0f, 1.0f, mv_matrix, 0, p_matrix, 0, viewport, 0, ray,
+					new float[16], new float[16], new float[4]);
+
+			for (Tile el : grid) {
+				if (el.intersects(ray, planet.getGrid()))
+					return el.id;
+			}
+
+			return -1;
+		};
 
 		/*
 		 * DRAW SELECTED TILE
@@ -428,34 +353,34 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 				JO.glVertex3f(gl, el.corners[1].v);
 				gl.glEnd();
 			}
+			gl.glFlush();
 		};
 
-		//
-		pickRay.accept(picking);
-		// int selected = getSelectedTile();
-		// if (-1 != selected && selected < planet.tileSize())
-		// selectedTile.accept(grid[selected]);
+		selectedTile.accept(grid[getSelectedTile()]);
 
-		if (selection.size() > 0) {
-			// selectedTile.accept(grid[selection.get(0)]);
-			for (Integer el : selection.toArray(new Integer[selection.size()]))
-				selectedTile.accept(grid[el]);
+		/*
+		 * XXX - I used to gl_flush only at the end of the display() method, but now I
+		 * use gl_flush after each draw.
+		 */
+		// gl.glFlush();
+
+		if (picking) {
+			PlanetViewController.picking = false;
+
+			/*
+			 * GL_SCALE inverts the y-axis for picking, then resets it before doing any
+			 * other work.
+			 */
+			gl.glScalef(1.0f, -1.0f, 1.0f);
+			int pickTile = pickRay.get();
+			gl.glScalef(1.0f, -1.0f, 1.0f);
+
+			if (pickTile != -1 && pickTile != getSelectedTile()) {
+				setSelectedTile(pickTile);
+				System.out.println("Selected tile " + pickTile);
+			}
 		}
 
-		// if (null != ray) {
-		// gl.glColor3f(0.3f, 0.5f, 1f);
-		// GLUquadric dot = glu.gluNewQuadric();
-		// glu.gluQuadricDrawStyle(dot, GLU.GLU_FILL);
-		// glu.gluQuadricNormals(dot, GLU.GLU_FLAT);
-		// glu.gluQuadricOrientation(dot, GLU.GLU_OUTSIDE);
-		//
-		// glu.gluSphere(dot, 0.1f, 16, 16);
-		// glu.gluDeleteQuadric(dot);
-		// }
-
-		gl.glFlush();
-
-		rquad -= 0.3f;
 	}
 
 	@Override
@@ -494,6 +419,7 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 			mouseX = e.getX();
 			mouseY = e.getY();
 			PlanetViewController.picking = true;
+			canvas.display();
 		}
 	}
 
