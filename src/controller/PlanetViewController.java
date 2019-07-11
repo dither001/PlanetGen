@@ -42,6 +42,7 @@ import model.Edge;
 import model.Grid;
 import model.Planet;
 import model.Tile;
+import view.GlobeView;
 
 @SuppressWarnings("serial")
 public class PlanetViewController extends GLCanvas implements GLEventListener, KeyListener, MouseListener {
@@ -112,6 +113,7 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		view_width = 640;
 
 		//
+		viewType = ViewType.TEMPERATURE;
 		selection = new ArrayList<Integer>();
 	}
 
@@ -141,6 +143,10 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		GLCapabilities caps = new GLCapabilities(profile);
 		window = GLWindow.create(caps);
 		window.addGLEventListener(canvas);
+		
+		GlobeView globe = new GlobeView(planet);
+		window.addGLEventListener(globe);
+		
 		window.addKeyListener(canvas);
 		window.addMouseListener(canvas);
 		window.setSize(view_width, view_height);
@@ -221,79 +227,6 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		// gl.glLoadIdentity();
 	}
 
-	private void drawGlobe(GL2 gl, Grid grid) {
-		/*
-		 * IN-LINE DRAW TILE
-		 */
-		BiConsumer<Tile, float[]> drawTile = (t, color) -> {
-			gl.glBegin(GL2.GL_TRIANGLE_FAN);
-
-			JO.glColor3f(gl, color);
-
-			JO.glVertex3f(gl, t.v);
-			for (Corner el : t.corners)
-				JO.glVertex3f(gl, el.v);
-
-			JO.glVertex3f(gl, t.corners[0].v);
-
-			gl.glEnd();
-		};
-
-		// CHOOSE VIEW COLORS
-		float[][] colors = null;
-		switch (ZGlobeViewController.getViewType()) {
-		case ARIDITY:
-			colors = PlanetColor.aridColors;
-			break;
-		case ELEVATION:
-			colors = PlanetColor.topoColors;
-			break;
-		case HUMIDITY:
-			colors = PlanetColor.humidColors;
-			break;
-		case LATITUDE:
-			colors = PlanetColor.latColors;
-			break;
-		case PRECIPITATION:
-			colors = PlanetColor.rainColors;
-			break;
-		case REGION:
-			colors = PlanetColor.regionColors;
-			break;
-		case TEMPERATURE:
-			colors = PlanetColor.tempColors;
-			break;
-		case VEGETATION:
-			colors = PlanetColor.vegeColors;
-			break;
-		default:
-			break;
-		}
-
-		//
-		Tile[] tiles = grid.tiles;
-		int length = tiles.length;
-		for (int i = 0; i < length; ++i) {
-			drawTile.accept(tiles[i], colors[i]);
-		}
-
-		Edge[] edges = grid.edges;
-		length = edges.length;
-		JO.glColor3f(gl, Color.JET_BLACK);
-		gl.glLineWidth(1.0f);
-		for (int i = 0; i < length; ++i) {
-			// if (planet.edgeIsCoast(i) || planet.edgeIsLand(i)) {
-			gl.glBegin(GL.GL_LINES);
-			JO.glVertex3f(gl, edges[i].corners[0].v);
-			JO.glVertex3f(gl, edges[i].corners[1].v);
-			gl.glEnd();
-			// }
-		}
-
-		rquad -= 0.3f;
-		gl.glFlush();
-	}
-
 	/*
 	 * DISPLAY METHOD
 	 * 
@@ -305,16 +238,7 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		//
 		final GL2 gl = drawable.getGL().getGL2();
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
-		setMatrix(gl);
-
-		gl.glRotatef(-90.0f, 0.95f, 0.1f, -0.1f); // rotate up
-		gl.glRotatef(rquad, 0, 0, 1.0f); // spin
-
-		/*
-		 * DRAW GLOBE
-		 */
-		drawGlobe(gl, planet.getGrid());
-
+		
 		/*
 		 * RAY PICKING
 		 */
@@ -341,29 +265,6 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 			return -1;
 		};
 
-		/*
-		 * DRAW SELECTED TILE
-		 */
-		Consumer<Tile> selectedTile = (t) -> {
-			JO.glColor3f(gl, Color.JET_BLACK);
-			gl.glLineWidth(1.5f);
-			for (Edge el : t.edges) {
-				gl.glBegin(GL2.GL_LINE_LOOP);
-				JO.glVertex3f(gl, el.corners[0].v);
-				JO.glVertex3f(gl, el.corners[1].v);
-				gl.glEnd();
-			}
-			gl.glFlush();
-		};
-
-		selectedTile.accept(grid[getSelectedTile()]);
-
-		/*
-		 * XXX - I used to gl_flush only at the end of the display() method, but now I
-		 * use gl_flush after each draw.
-		 */
-		// gl.glFlush();
-
 		if (picking) {
 			PlanetViewController.picking = false;
 
@@ -371,6 +272,8 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 			 * GL_SCALE inverts the y-axis for picking, then resets it before doing any
 			 * other work.
 			 */
+//			gl.glRotatef(90, 1, 0, 0); // rotate up-down
+//			gl.glRotatef(15, 0, 1, 0); // rotate left-right
 			gl.glScalef(1.0f, -1.0f, 1.0f);
 			int pickTile = pickRay.get();
 			gl.glScalef(1.0f, -1.0f, 1.0f);
