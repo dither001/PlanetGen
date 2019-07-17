@@ -2,12 +2,6 @@ package controller;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.swing.JFrame;
@@ -19,47 +13,51 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
-import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.util.FPSAnimator;
+import com.planet.atmosphere.Season;
 
 import api.ViewType;
-import graphics.Color;
-import graphics.JO;
 import graphics.PlanetColor;
 import menu.ViewsMenu;
-import model.Corner;
-import model.Edge;
-import model.Grid;
 import model.Planet;
 import model.Tile;
+import view.ArrowView;
 import view.GlobeView;
 
 @SuppressWarnings("serial")
 public class PlanetViewController extends GLCanvas implements GLEventListener, KeyListener, MouseListener {
 
-	public static int A_COUNT;
-	public static int B_COUNT;
-	public static int C_COUNT;
-	public static int D_COUNT;
+	/*
+	 * TESTING
+	 */
+	public static boolean TEST_ROTATE_WORLD = true;
+	public static boolean TEST_SPIN_WORLD = true;
+	public static boolean TEST_TILT_WORLD = false;
+
+	public static boolean TEST_INVERT_X = false;
+	// invert Y gets the ray on the correct "hemisphere" when -NOT- rotated
+	public static boolean TEST_INVERT_Y = false;
+	// invert Z gets the ray on the correct "hemisphere" when rotated
+	public static boolean TEST_INVERT_Z = true;
 
 	/*
 	 * STATIC FIELDS
 	 */
-	private static ExecutorService executor;
-
-	private static GLU glu;
+	public static final int FRAME_HEIGHT;
+	public static final int FRAME_WIDTH;
 	private static JFrame frame;
+
+	//
 	private static JMenuBar menuBar;
+	private static final int MENUBAR_OFFSET;
 
 	//
 	private static NewtCanvasAWT newt;
@@ -67,54 +65,55 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 	private static GLWindow window;
 	private static FPSAnimator animator;
 
-	//
-	public static final int FRAME_HEIGHT;
-	public static final int FRAME_WIDTH;
-	public static final float MOUSE_THRESHOLD;
-
-	//
+	// PlanetController fields
 	private static final int GRID_SIZE;
-
 	private static Planet planet;
-	private static Quaternion defaultRotation;
 
-	private static float rquad;
-	private static int scale;
-	private static int view_height;
-	private static int view_width;
-
-	//
+	// Ray-Picking and Tile Selection
+	public static final float MOUSE_THRESHOLD;
 	private static ViewType viewType;
 	private static boolean picking;
-	private static float mouseX, mouseY;
+	private static int mouseX, mouseY;
 	private static int selectedTile;
+
+	public static int selection_index;
 	public static ArrayList<Integer> selection;
 
 	private static Ray ray;
 
-	static {
-		executor = Executors.newCachedThreadPool();
+	// PlanetView fields
+	private static GlobeView globe;
+	private static int view_height;
+	private static int view_width;
+	
+	//
+	private static ArrayList<ArrowView> wind_vectors;
 
+	/*
+	 * INITIALIZATION
+	 */
+	static {
 		//
 		FRAME_HEIGHT = 480;
 		FRAME_WIDTH = 480;
+		MENUBAR_OFFSET = 23;
 
 		//
 		GRID_SIZE = 4;
-		MOUSE_THRESHOLD = 1.5f;
+		MOUSE_THRESHOLD = 1;
 
 		planet = null;
-		defaultRotation = null;
 
 		//
-		rquad = 0.0f;
-		scale = 1;
-		view_height = 640;
-		view_width = 640;
+		view_height = 480;
+		view_width = 480;
 
 		//
-		viewType = ViewType.TEMPERATURE;
+		viewType = ViewType.ELEVATION;
 		selection = new ArrayList<Integer>();
+		//
+		wind_vectors = new ArrayList<ArrowView>();
+
 	}
 
 	/*
@@ -123,15 +122,13 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 	private PlanetViewController() {
 		try {
 			planet = Planet.build(GRID_SIZE);
-			defaultRotation = planet.rotationToDefault();
-
 			PlanetColor.setupColors(planet);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	
 	/*
 	 * MAIN METHOD
 	 */
@@ -143,10 +140,10 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		GLCapabilities caps = new GLCapabilities(profile);
 		window = GLWindow.create(caps);
 		window.addGLEventListener(canvas);
-		
-		GlobeView globe = new GlobeView(planet);
+
+		globe = new GlobeView(planet);
 		window.addGLEventListener(globe);
-		
+
 		window.addKeyListener(canvas);
 		window.addMouseListener(canvas);
 		window.setSize(view_width, view_height);
@@ -194,37 +191,24 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		PlanetViewController.selectedTile = selectedTile < 0 ? max - 1 : selectedTile >= max ? 0 : selectedTile;
 	}
 
-	/*
-	 * HELPER METHODS
-	 * 
-	 */
 	private static Dimension setupFrame() {
 		Dimension d = new Dimension(FRAME_WIDTH, FRAME_HEIGHT);
 
 		// XXX - height of menu bar
-		d.height += 23;
+		d.height += MENUBAR_OFFSET;
 
 		return d;
 	}
-
-	private void setMatrix(GL2 gl) {
-		// added Matrix Mode
-		gl.glMatrixMode(GL2.GL_PROJECTION);
-		gl.glLoadIdentity();
-
-		double x = view_width / FRAME_WIDTH / scale;
-		double y = view_height / FRAME_HEIGHT / scale;
-		gl.glOrtho(-x, x, -y, y, -2.0, 0.0);
-
-		// float aspect_ratio = view_width / view_height * scale;
-		//
-		// gl.glViewport(0, 0, view_width, view_height);
-		// gl.glMatrixMode(GL2.GL_PROJECTION);
-		// gl.glLoadIdentity();
-		//
-		// glu.gluPerspective(45.0, aspect_ratio, 1.0, 100.0);
-		// gl.glMatrixMode(GL2.GL_MODELVIEW);
-		// gl.glLoadIdentity();
+	
+	/*
+	 * HELPER METHODS
+	 * 
+	 */
+	private void setupPlanetVectors() {
+		Season s = planet.getClimate().getSeason(0);
+		
+		
+		
 	}
 
 	/*
@@ -238,12 +222,14 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		//
 		final GL2 gl = drawable.getGL().getGL2();
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
-		
+
 		/*
 		 * RAY PICKING
 		 */
 		Supplier<Integer> pickRay = () -> {
-			// step 1
+			/*
+			 * JOGL/OpenGL ray-picking
+			 */
 			int[] viewport = new int[4];
 			gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
 
@@ -254,12 +240,28 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 			gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, mv_matrix, 0);
 
 			ray = new Ray();
-			FloatUtil.mapWinToRay(mouseX, mouseY, 0.0f, 1.0f, mv_matrix, 0, p_matrix, 0, viewport, 0, ray,
-					new float[16], new float[16], new float[4]);
+			FloatUtil.mapWinToRay(mouseX, mouseY, 0, 1, mv_matrix, 0, p_matrix, 0, viewport, 0, ray, new float[16],
+					new float[16], new float[4]);
 
+			// System.out.printf("%-14s (%.2f, %.2f, %.2f)%n", "Ray origin:", ray.orig[0],
+			// ray.orig[1], ray.orig[2]);
+			// System.out.printf("%-14s (%.2f, %.2f, %.2f)%n", "Ray direction:",
+			// ray.orig[0], ray.orig[1], ray.orig[2]);
+
+			int counter = 0;
+			selection.clear();
 			for (Tile el : grid) {
-				if (el.intersects(ray, planet.getGrid()))
-					return el.id;
+				if (el.intersects(ray.orig, ray.dir, planet.getGrid())) {
+					// if (el.intersects(ray_ndc, ray_dir, planet.getGrid())) {
+					selection.add(el.id);
+					++counter;
+				}
+			}
+			// System.out.println(counter);
+
+			if (counter > 0) {
+				PlanetViewController.selection_index = 0;
+				return selection.get(PlanetViewController.selection_index);
 			}
 
 			return -1;
@@ -272,11 +274,21 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 			 * GL_SCALE inverts the y-axis for picking, then resets it before doing any
 			 * other work.
 			 */
-//			gl.glRotatef(90, 1, 0, 0); // rotate up-down
-//			gl.glRotatef(15, 0, 1, 0); // rotate left-right
-			gl.glScalef(1.0f, -1.0f, 1.0f);
+			if (TEST_INVERT_X)
+				gl.glScalef(-1.0f, 1.0f, 1.0f);
+			if (TEST_INVERT_Y)
+				gl.glScalef(1.0f, -1.0f, 1.0f);
+			if (TEST_INVERT_Z)
+				gl.glScalef(1.0f, 1.0f, -1.0f);
+
 			int pickTile = pickRay.get();
-			gl.glScalef(1.0f, -1.0f, 1.0f);
+
+			if (TEST_INVERT_X)
+				gl.glScalef(-1.0f, 1.0f, 1.0f);
+			if (TEST_INVERT_Y)
+				gl.glScalef(1.0f, -1.0f, 1.0f);
+			if (TEST_INVERT_Z)
+				gl.glScalef(1.0f, 1.0f, -1.0f);
 
 			if (pickTile != -1 && pickTile != getSelectedTile()) {
 				setSelectedTile(pickTile);
@@ -295,14 +307,12 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 	@Override
 	public void init(GLAutoDrawable drawable) {
 		// TODO Auto-generated method stub
-		final GL2 gl = drawable.getGL().getGL2();
-		glu = new GLU();
 
 	}
 
 	@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) {
-		GL2 gl = drawable.getGL().getGL2();
+		// GL2 gl = drawable.getGL().getGL2();
 
 		// gl.glViewport(0, 0, w, h);
 		// gl.glMatrixMode(GL2.GL_PROJECTION);
@@ -374,13 +384,20 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 	 */
 	@Override
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_UP) {
-			PlanetViewController.setSelectedTile(PlanetViewController.getSelectedTile() - 1);
-
+		if (e.getKeyCode() == KeyEvent.VK_UP && selection.size() > 0) {
+			selection_index = selection_index > 0 ? selection_index - 1 : selection.size() - 1;
+			PlanetViewController.setSelectedTile(selection.get(selection_index));
+			//
+			// PlanetViewController.setSelectedTile(PlanetViewController.getSelectedTile() -
+			// 1);
 		}
 
-		if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-			PlanetViewController.setSelectedTile(PlanetViewController.getSelectedTile() + 1);
+		if (e.getKeyCode() == KeyEvent.VK_DOWN && selection.size() > 0) {
+			selection_index = selection_index + 1 < selection.size() ? selection_index + 1 : 0;
+			PlanetViewController.setSelectedTile(selection.get(selection_index));
+			//
+			// PlanetViewController.setSelectedTile(PlanetViewController.getSelectedTile() +
+			// 1);
 		}
 
 		int id = PlanetViewController.getSelectedTile();

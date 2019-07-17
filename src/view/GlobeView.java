@@ -1,7 +1,6 @@
 package view;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -9,7 +8,6 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
 
 import controller.PlanetViewController;
-import controller.ZGlobeViewController;
 import graphics.Color;
 import graphics.JO;
 import graphics.PlanetColor;
@@ -23,17 +21,17 @@ public class GlobeView implements GLEventListener {
 
 	private float rquad;
 	private int scale;
-	private int view_height;
-	private int view_width;
+	public int view_height;
+	public int view_width;
 
-	private Planet planet;
+	// private Planet planet;
 	private Grid grid;
 
 	/*
 	 * CONSTRUCTORS
 	 */
 	public GlobeView(Planet planet) {
-		this.planet = planet;
+		// this.planet = planet;
 		this.grid = planet.getGrid();
 
 		//
@@ -41,6 +39,10 @@ public class GlobeView implements GLEventListener {
 		this.scale = 1;
 		this.view_height = 640;
 		this.view_width = 640;
+	}
+
+	public float getRotation() {
+		return rquad;
 	}
 
 	/*
@@ -51,21 +53,32 @@ public class GlobeView implements GLEventListener {
 		gl.glMatrixMode(GL2.GL_PROJECTION);
 		gl.glLoadIdentity();
 
+		// Desired values are view > frame
 		double x = view_width / PlanetViewController.FRAME_WIDTH / scale;
 		double y = view_height / PlanetViewController.FRAME_HEIGHT / scale;
-		gl.glOrtho(-x, x, -y, y, -2.0, 0.0);
+
+		/*
+		 * XXX - The most important facet of glOrtho in its use here, appears to be
+		 * setting up the clipping plane, so the "front" of the sphere is displayed, and
+		 * not the "back." (The results of seeing both at once are dizzying.)
+		 */
+		gl.glOrtho(-x, x, -y, y, 1.0, 0);
 	}
 
 	private void rotateGlobe(GL2 gl) {
-		// gl.glRotatef(-90.0f, 0.95f, 0.1f, -0.1f); // rotate up
-		// gl.glRotatef(-90, 0.1f, 0, 0); // rotate up-down
+		if (PlanetViewController.TEST_ROTATE_WORLD)
+			gl.glRotatef(90, 1, 0, 0); // rotate up-down
 
-		gl.glRotatef(-90, 1, 0, 0); // rotate up-down
-		// gl.glRotatef(-15, 0, 1, 0); // rotate left-right
-		gl.glRotatef(rquad, 0, 0, 1.0f); // spin
+		if (PlanetViewController.TEST_TILT_WORLD)
+			gl.glRotatef(-15, 0, 1, 0); // tilt (left-right)
 
-		rquad -= 0.3f;
-		System.out.println("Done");
+		if (PlanetViewController.TEST_SPIN_WORLD) {
+			gl.glRotatef(rquad, 0, 0, 1); // spin
+
+			rquad -= 0.3f;
+			rquad %= 360;
+			// System.out.println(rquad);
+		}
 	}
 
 	/*
@@ -74,10 +87,9 @@ public class GlobeView implements GLEventListener {
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		final GL2 gl = drawable.getGL().getGL2();
-		// gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
 		setMatrix(gl);
-//		rotateGlobe(gl);
+		rotateGlobe(gl);
 
 		/*
 		 * IN-LINE DRAW TILE
@@ -92,7 +104,6 @@ public class GlobeView implements GLEventListener {
 				JO.glVertex3f(gl, el.v);
 
 			JO.glVertex3f(gl, t.corners[0].v);
-
 			gl.glEnd();
 		};
 
@@ -150,9 +161,9 @@ public class GlobeView implements GLEventListener {
 		/*
 		 * DRAW SELECTED TILE
 		 */
-		Consumer<Tile> selectedTile = (t) -> {
+		BiConsumer<Tile, Float> selectedTile = (t, line_weight) -> {
 			JO.glColor3f(gl, Color.JET_BLACK);
-			gl.glLineWidth(1.5f);
+			gl.glLineWidth(line_weight);
 			for (Edge el : t.edges) {
 				gl.glBegin(GL2.GL_LINE_LOOP);
 				JO.glVertex3f(gl, el.corners[0].v);
@@ -161,7 +172,13 @@ public class GlobeView implements GLEventListener {
 			}
 		};
 
-		selectedTile.accept(tiles[PlanetViewController.getSelectedTile()]);
+		/*
+		 * 
+		 */
+		for (Integer el : PlanetViewController.selection)
+			selectedTile.accept(tiles[el], 1.5f);
+
+		selectedTile.accept(tiles[PlanetViewController.getSelectedTile()], 3.0f);
 
 		gl.glFlush();
 	}

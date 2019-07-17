@@ -69,9 +69,9 @@ public class Grid {
 	 * 
 	 * https://experilous.com/1/blog/post/procedural-planet-generation
 	 */
-	public boolean intersectSphere(Ray ray) {
-		float[] v1 = VectorUtil.subVec3(new float[3], VectorUtil.VEC3_ZERO, ray.orig);
-		float[] v2 = Misc.projectVector3(v1, ray.dir);
+	public boolean intersectSphere(float[] origin, float[] direction) {
+		float[] v1 = VectorUtil.subVec3(new float[3], VectorUtil.VEC3_ZERO, origin);
+		float[] v2 = Misc.projectVector3(v1, direction);
 
 		boolean intersect = VectorUtil.distSquareVec3(v1, v2) < PlanetViewController.MOUSE_THRESHOLD;
 		// if (intersect)

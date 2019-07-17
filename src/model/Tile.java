@@ -6,7 +6,6 @@ import com.jogamp.opengl.math.VectorUtil;
 
 import controller.Parameters;
 import controller.Plane;
-import controller.PlanetViewController;
 
 public class Tile {
 	public int id;
@@ -49,25 +48,32 @@ public class Tile {
 	 * 
 	 * https://experilous.com/1/blog/post/procedural-planet-generation
 	 */
-	public boolean intersects(Ray r, Grid g) {
-		if (true != g.intersectSphere(r))
+	public boolean intersects(float[] position, float[] direction, Grid g) {
+		/*
+		 * If the ray misses the sphere, it misses all the hexes.
+		 */
+		if (true != g.intersectSphere(position, direction))
 			return false;
 
-		if (true != bounds.hit(r, -2, 2))
+		/*
+		 * If the ray misses
+		 */
+		if (true != bounds.hit(position, direction, -2, 2))
 			return false;
 
 		Plane surface = Plane.setFromNormalAndCoplanarPoint(VectorUtil.normalizeVec3(new float[3], v), v);
-		if (surface.distanceToPoint(r.orig) < 0)
+		if (surface.distanceToPoint(position) < 0)
 			return false;
 
-		// float denom = VectorUtil.dotVec3(surface.normal, r.dir);
-		// if (FloatUtil.isZero(denom, Parameters.EPSILON))
-		// return false;
+		float denom = VectorUtil.dotVec3(surface.normal, direction);
+		if (FloatUtil.isZero(denom, Parameters.EPSILON))
+			return false;
 
-		// float t = -(VectorUtil.dotVec3(r.orig, surface.normal) + surface.k) / denom;
-		// float[] point = VectorUtil.copyVec3(new float[3], 0, r.dir, 0);
+		// float t = -(VectorUtil.dotVec3(position, surface.normal) + surface.k) /
+		// denom;
+		// float[] point = VectorUtil.copyVec3(new float[3], 0, direction, 0);
 		// point = VectorUtil.scaleVec3(point, point, t);
-		// point = VectorUtil.addVec3(point, point, r.orig);
+		// point = VectorUtil.addVec3(point, point, position);
 		//
 		// float[] origin = new float[3];
 		// for (int i = 0; i < corners.length; ++i) {
@@ -92,7 +98,7 @@ public class Tile {
 			maxDistanceToCorner = Math.max(maxDistanceToCorner, VectorUtil.distVec3(v, corners[i].v));
 		}
 
-		this.bounds = new BoundingSphere(v, maxDistanceToCorner * 0.6f);
+		this.bounds = new BoundingSphere(v, maxDistanceToCorner);// * 0.6f);
 	}
 
 	/*
@@ -107,9 +113,9 @@ public class Tile {
 			this.radius = radius;
 		}
 
-		boolean hit(Ray r, float t_min, float t_max) {
-			float[] oc = VectorUtil.subVec2(new float[3], r.orig, center);
-			float[] d = r.dir;
+		boolean hit(float[] origin, float[] direction, float t_min, float t_max) {
+			float[] oc = VectorUtil.subVec2(new float[3], origin, center);
+			float[] d = direction;
 
 			float a = VectorUtil.dotVec3(d, d);
 			float b = VectorUtil.dotVec3(oc, d);

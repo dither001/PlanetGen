@@ -2,9 +2,8 @@ package graphics;
 
 import com.planet.atmosphere.Climate;
 import com.planet.atmosphere.Season;
-import com.planet.lithosphere.Plate;
 
-import controller.ZGlobeViewController;
+import controller.PlanetViewController;
 import model.Planet;
 import model.Tile;
 
@@ -45,7 +44,7 @@ public abstract class PlanetColor {
 	public static void updateColors(int season, Planet p) {
 		Season s = p.getClimate().getSeason(season);
 
-		switch (ZGlobeViewController.getViewType()) {
+		switch (PlanetViewController.getViewType()) {
 		case ARIDITY:
 			colorAridity(s, p);
 			break;
@@ -304,36 +303,6 @@ public abstract class PlanetColor {
 	}
 
 	/*
-	 * STAINED GLASS
-	 */
-	private static void stainedGlass(Planet p) {
-		float[][] regions = new float[][] { //
-				Color.BLOOD_RED.rgb(), Color.DARK_RED.rgb(), Color.RED.rgb(), Color.DARK_RED.rgb(), //
-				Color.RUSSET.rgb(), Color.OCHRE.rgb(), Color.BRONZE.rgb(), //
-				Color.FOREST_GREEN.rgb(), Color.DARK_GREEN.rgb(), Color.GREEN.rgb(), Color.LIGHT_GREEN.rgb(), //
-				Color.SEA_GREEN.rgb(), Color.MINT.rgb(), Color.JUNGLE.rgb(), //
-				Color.NAVY_BLUE.rgb(), Color.DARK_BLUE.rgb(), Color.BLUE.rgb(), Color.LIGHT_BLUE.rgb(), //
-				Color.PURPLE.rgb(), Color.ORCHID.rgb(), Color.MAGENTA.rgb() //
-		};
-
-		//
-		Tile[] gTiles = p.getGrid().tiles;
-		int length = gTiles.length;
-
-		/*
-		 * XXX - Doesn't currently save to anything important.
-		 */
-		float[][] stainedGlass = new float[length][];
-		for (int i = 0; i < length; ++i) {
-			if (i > 11)
-				stainedGlass[i] = regions[i % 20];
-			else
-				stainedGlass[i] = new float[] { 1, 1, 1 };
-		}
-
-	}
-
-	/*
 	 * REGION
 	 */
 	private static void colorRegions(Planet p) {
@@ -354,8 +323,6 @@ public abstract class PlanetColor {
 
 		regionColors = new float[length][];
 		for (int i = 0; i < length; ++i) {
-			Tile current = gTiles[i];
-
 			regionColors[i] = regions[plateIds[i]];
 		}
 
