@@ -21,12 +21,14 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.planet.atmosphere.Season;
 
 import api.ViewType;
 import graphics.PlanetColor;
 import menu.ViewsMenu;
+import model.Grid;
 import model.Planet;
 import model.Tile;
 import view.ArrowView;
@@ -85,7 +87,7 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 	private static GlobeView globe;
 	private static int view_height;
 	private static int view_width;
-	
+
 	//
 	private static ArrayList<ArrowView> wind_vectors;
 
@@ -128,7 +130,7 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 			e.printStackTrace();
 		}
 	}
-	
+
 	/*
 	 * MAIN METHOD
 	 */
@@ -191,6 +193,10 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		PlanetViewController.selectedTile = selectedTile < 0 ? max - 1 : selectedTile >= max ? 0 : selectedTile;
 	}
 
+	/*
+	 * HELPER METHODS
+	 * 
+	 */
 	private static Dimension setupFrame() {
 		Dimension d = new Dimension(FRAME_WIDTH, FRAME_HEIGHT);
 
@@ -198,17 +204,6 @@ public class PlanetViewController extends GLCanvas implements GLEventListener, K
 		d.height += MENUBAR_OFFSET;
 
 		return d;
-	}
-	
-	/*
-	 * HELPER METHODS
-	 * 
-	 */
-	private void setupPlanetVectors() {
-		Season s = planet.getClimate().getSeason(0);
-		
-		
-		
 	}
 
 	/*
